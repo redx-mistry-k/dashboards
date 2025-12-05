@@ -1,66 +1,328 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>HR Employee Attrition Dashboard</title>
-
+  <title>HR Employee Attrition Dashboard | People Analytics</title>
   <link rel="stylesheet" href="/assets/css/styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <style>
+    .hr-theme {
+      --dashboard-color: #3a0ca3;
+      --dashboard-light: rgba(58, 12, 163, 0.1);
+    }
+    
+    .kpi-card:nth-child(1) { border-left-color: #4361ee; }
+    .kpi-card:nth-child(2) { border-left-color: #ef476f; }
+    .kpi-card:nth-child(3) { border-left-color: #06d6a0; }
+    .kpi-card:nth-child(4) { border-left-color: #ffd166; }
+    
+    .attrition-high { color: #ef476f; font-weight: 600; }
+    .attrition-low { color: #06d6a0; font-weight: 600; }
+    
+    .department-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      background: var(--light-gray);
+      margin-right: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    .risk-indicator {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      display: inline-block;
+      margin-right: 0.5rem;
+    }
+    
+    .high-risk { background: #ef476f; }
+    .medium-risk { background: #ffd166; }
+    .low-risk { background: #06d6a0; }
+  </style>
 </head>
-<body>
+<body class="hr-theme">
   <header class="navbar">
-    <h1>HR / Employee Attrition Dashboard</h1>
+    <h1><i class="fas fa-users"></i> HR Employee Attrition Dashboard</h1>
     <nav>
-      <a href="/">Home</a>
-      <a href="/retail/">Retail</a>
-      <a href="/telecom/">Telecom</a>
-      <a href="/hr/">HR</a>
+      <a href="/"><i class="fas fa-home"></i> Home</a>
+      <a href="/retail/"><i class="fas fa-shopping-cart"></i> Retail</a>
+      <a href="/telecom/"><i class="fas fa-mobile-alt"></i> Telecom</a>
+      <a href="/hr/" class="active"><i class="fas fa-chart-line"></i> HR</a>
     </nav>
   </header>
 
   <main class="container">
+    <section class="dashboard-header">
+      <div class="dashboard-header-content">
+        <h2><i class="fas fa-user-check"></i> People Analytics & Attrition Insights</h2>
+        <p>Monitor employee attrition patterns, identify retention risks, and analyze workforce demographics across departments and job roles.</p>
+      </div>
+      <div class="date-range">
+        <i class="fas fa-calendar-alt"></i>
+        <span>Data Period: Jan 2022 - Dec 2023</span>
+      </div>
+    </section>
+
+    <section class="filter-container">
+      <div class="filter-group">
+        <label for="department-filter"><i class="fas fa-building"></i> Department</label>
+        <select id="department-filter">
+          <option value="all">All Departments</option>
+          <option value="Sales">Sales</option>
+          <option value="Research & Development">R&D</option>
+          <option value="Human Resources">Human Resources</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="job-role-filter"><i class="fas fa-briefcase"></i> Job Role</label>
+        <select id="job-role-filter">
+          <option value="all">All Roles</option>
+          <option value="Sales Executive">Sales Executive</option>
+          <option value="Research Scientist">Research Scientist</option>
+          <option value="Laboratory Technician">Lab Technician</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="age-group-filter"><i class="fas fa-user-clock"></i> Age Group</label>
+        <select id="age-group-filter">
+          <option value="all">All Ages</option>
+          <option value="18-25">18-25</option>
+          <option value="26-35">26-35</option>
+          <option value="36-45">36-45</option>
+          <option value="46-55">46-55</option>
+          <option value="55+">55+</option>
+        </select>
+      </div>
+      <button class="btn" id="apply-filters">
+        <i class="fas fa-filter"></i> Apply Filters
+      </button>
+      <button class="btn btn-outline" id="reset-filters">
+        <i class="fas fa-redo"></i> Reset
+      </button>
+    </section>
+
     <section class="kpi-grid">
       <div class="kpi-card">
-        <h2>Total Employees</h2>
-        <p id="kpi-total-employees">Loading...</p>
+        <h2><i class="fas fa-user-friends"></i> Total Employees</h2>
+        <p id="kpi-total-employees">1,470</p>
+        <div class="trend positive">
+          <i class="fas fa-arrow-up"></i>
+          <span>5.2% growth</span>
+        </div>
       </div>
       <div class="kpi-card">
-        <h2>Attrition Rate</h2>
-        <p id="kpi-attrition-rate">Loading...</p>
+        <h2><i class="fas fa-user-slash"></i> Attrition Rate</h2>
+        <p id="kpi-attrition-rate" class="attrition-high">16.1%</p>
+        <div class="trend negative">
+          <i class="fas fa-arrow-up"></i>
+          <span>2.3% increase</span>
+        </div>
       </div>
       <div class="kpi-card">
-        <h2>Average Age</h2>
-        <p id="kpi-avg-age">Loading...</p>
+        <h2><i class="fas fa-birthday-cake"></i> Average Age</h2>
+        <p id="kpi-avg-age">37.0</p>
+        <div class="trend positive">
+          <i class="fas fa-arrow-down"></i>
+          <span>1.2 years decrease</span>
+        </div>
       </div>
       <div class="kpi-card">
-        <h2>Avg Years at Company</h2>
-        <p id="kpi-avg-years">Loading...</p>
+        <h2><i class="fas fa-business-time"></i> Avg Years at Company</h2>
+        <p id="kpi-avg-years">7.0</p>
+        <div class="trend positive">
+          <i class="fas fa-arrow-up"></i>
+          <span>0.8 years increase</span>
+        </div>
       </div>
     </section>
 
     <section class="charts-grid">
       <div class="chart-card">
-        <h3>Attrition vs Active</h3>
-        <canvas id="attritionOverall"></canvas>
+        <h3><i class="fas fa-balance-scale"></i> Attrition Distribution</h3>
+        <div class="chart-container">
+          <canvas id="attritionOverall"></canvas>
+        </div>
+        <div style="margin-top: 1rem; font-size: 0.9rem; color: var(--gray-color);">
+          <span class="risk-indicator high-risk"></span> High Risk Departments: Sales (20.6%)
+        </div>
       </div>
       <div class="chart-card">
-        <h3>Attrition by Department</h3>
-        <canvas id="attritionByDept"></canvas>
+        <h3><i class="fas fa-building"></i> Attrition by Department</h3>
+        <div class="chart-container">
+          <canvas id="attritionByDept"></canvas>
+        </div>
       </div>
       <div class="chart-card">
-        <h3>Attrition by Job Role</h3>
-        <canvas id="attritionByRole"></canvas>
+        <h3><i class="fas fa-briefcase"></i> Attrition by Job Role</h3>
+        <div class="chart-container">
+          <canvas id="attritionByRole"></canvas>
+        </div>
       </div>
       <div class="chart-card">
-        <h3>Attrition by Age Group</h3>
-        <canvas id="attritionByAge"></canvas>
+        <h3><i class="fas fa-user-clock"></i> Attrition by Age Group</h3>
+        <div class="chart-container">
+          <canvas id="attritionByAge"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <h3><i class="fas fa-graduation-cap"></i> Attrition by Education</h3>
+        <div class="chart-container">
+          <canvas id="attritionByEducation"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <h3><i class="fas fa-money-bill-wave"></i> Attrition by Salary Range</h3>
+        <div class="chart-container">
+          <canvas id="attritionBySalary"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <section class="data-table-container">
+      <h3><i class="fas fa-table"></i> Employee Data Sample</h3>
+      <div class="table-wrapper">
+        <table id="employee-table">
+          <thead>
+            <tr>
+              <th>Employee ID</th>
+              <th>Department</th>
+              <th>Job Role</th>
+              <th>Age</th>
+              <th>Years at Company</th>
+              <th>Attrition</th>
+              <th>Risk Level</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>HR001</td>
+              <td><span class="department-badge">Sales</span></td>
+              <td>Sales Executive</td>
+              <td>29</td>
+              <td>3</td>
+              <td><span class="attrition-high">Yes</span></td>
+              <td><span class="risk-indicator high-risk"></span> High</td>
+            </tr>
+            <tr>
+              <td>HR002</td>
+              <td><span class="department-badge">R&D</span></td>
+              <td>Research Scientist</td>
+              <td>42</td>
+              <td>10</td>
+              <td><span class="attrition-low">No</span></td>
+              <td><span class="risk-indicator low-risk"></span> Low</td>
+            </tr>
+            <!-- More rows would be populated by JavaScript -->
+          </tbody>
+        </table>
+      </div>
+      <div style="margin-top: 1rem; text-align: center;">
+        <button class="btn btn-outline" id="load-more">
+          <i class="fas fa-plus"></i> Load More Records
+        </button>
       </div>
     </section>
   </main>
 
+  <footer class="footer">
+    <div class="footer-content">
+      <p><i class="fas fa-chart-line"></i> HR Employee Attrition Dashboard &copy; 2023</p>
+      <p>People Analytics & Workforce Insights Platform</p>
+      <div class="download-links">
+        <a href="/assets/data/hr_dataset.csv" class="btn btn-outline" style="color: white; border-color: white;">
+          <i class="fas fa-download"></i> Download Dataset
+        </a>
+        <a href="#" class="btn btn-outline" style="color: white; border-color: white;">
+          <i class="fas fa-file-pdf"></i> Export Report
+        </a>
+        <a href="#" class="btn btn-outline" style="color: white; border-color: white;">
+          <i class="fas fa-question-circle"></i> Documentation
+        </a>
+      </div>
+    </div>
+  </footer>
+
   <script src="/assets/js/hr.js"></script>
+  <script>
+    // Interactive functionality
+    document.addEventListener('DOMContentLoaded', function() {
+      // Filter functionality
+      const applyFiltersBtn = document.getElementById('apply-filters');
+      const resetFiltersBtn = document.getElementById('reset-filters');
+      const loadMoreBtn = document.getElementById('load-more');
+      
+      applyFiltersBtn.addEventListener('click', function() {
+        const department = document.getElementById('department-filter').value;
+        const jobRole = document.getElementById('job-role-filter').value;
+        const ageGroup = document.getElementById('age-group-filter').value;
+        
+        // Show loading state
+        applyFiltersBtn.innerHTML = '<span class="loading"></span> Applying...';
+        applyFiltersBtn.disabled = true;
+        
+        // Simulate API call
+        setTimeout(() => {
+          alert(`Filters applied:\n- Department: ${department}\n- Job Role: ${jobRole}\n- Age Group: ${ageGroup}`);
+          applyFiltersBtn.innerHTML = '<i class="fas fa-filter"></i> Apply Filters';
+          applyFiltersBtn.disabled = false;
+        }, 1000);
+      });
+      
+      resetFiltersBtn.addEventListener('click', function() {
+        document.getElementById('department-filter').value = 'all';
+        document.getElementById('job-role-filter').value = 'all';
+        document.getElementById('age-group-filter').value = 'all';
+      });
+      
+      loadMoreBtn.addEventListener('click', function() {
+        loadMoreBtn.innerHTML = '<span class="loading"></span> Loading...';
+        
+        setTimeout(() => {
+          // Simulate adding more rows
+          const tableBody = document.querySelector('#employee-table tbody');
+          const newRow = document.createElement('tr');
+          newRow.innerHTML = `
+            <td>HR${Math.floor(Math.random() * 1000)}</td>
+            <td><span class="department-badge">R&D</span></td>
+            <td>Research Scientist</td>
+            <td>${Math.floor(Math.random() * 30) + 25}</td>
+            <td>${Math.floor(Math.random() * 15) + 1}</td>
+            <td><span class="${Math.random() > 0.7 ? 'attrition-high' : 'attrition-low'}">${Math.random() > 0.7 ? 'Yes' : 'No'}</span></td>
+            <td><span class="risk-indicator ${Math.random() > 0.7 ? 'high-risk' : Math.random() > 0.4 ? 'medium-risk' : 'low-risk'}"></span> ${Math.random() > 0.7 ? 'High' : Math.random() > 0.4 ? 'Medium' : 'Low'}</td>
+          `;
+          tableBody.appendChild(newRow);
+          
+          loadMoreBtn.innerHTML = '<i class="fas fa-plus"></i> Load More Records';
+        }, 800);
+      });
+      
+      // Chart hover effects
+      const chartCards = document.querySelectorAll('.chart-card');
+      chartCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+          const icon = this.querySelector('h3 i');
+          if (icon) {
+            icon.style.transform = 'scale(1.2)';
+            icon.style.transition = 'transform 0.3s ease';
+          }
+        });
+        
+        card.addEventListener('mouseleave', function() {
+          const icon = this.querySelector('h3 i');
+          if (icon) {
+            icon.style.transform = 'scale(1)';
+          }
+        });
+      });
+    });
+  </script>
 </body>
 </html>
-
