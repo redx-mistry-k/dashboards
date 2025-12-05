@@ -47,33 +47,44 @@ const MALL_COLORS = {
   'Northside': '#ffd166'
 };
 
+// Indian Rupee formatting functions
 function formatCurrency(num) {
-  if (isNaN(num)) return "-";
-  return "$" + num.toLocaleString("en-US", { 
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2 
+  if (isNaN(num) || num === 0) return "₹0";
+  
+  // Indian numbering system
+  if (num >= 10000000) { // Crores
+    return "₹" + (num / 10000000).toFixed(2) + " Cr";
+  } else if (num >= 100000) { // Lakhs
+    return "₹" + (num / 100000).toFixed(2) + " L";
+  } else if (num >= 1000) { // Thousands
+    return "₹" + (num / 1000).toFixed(2) + "K";
+  }
+  
+  return "₹" + num.toLocaleString("en-IN", { 
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0 
   });
 }
 
 function formatCompactCurrency(num) {
-  if (isNaN(num)) return "-";
-  if (num >= 1000000) {
-    return "$" + (num / 1000000).toFixed(2) + "M";
-  } else if (num >= 1000) {
-    return "$" + (num / 1000).toFixed(1) + "K";
+  if (isNaN(num) || num === 0) return "₹0";
+  
+  if (num >= 10000000) {
+    return "₹" + (num / 10000000).toFixed(2) + " Cr";
+  } else if (num >= 100000) {
+    return "₹" + (num / 100000).toFixed(2) + " L";
   }
-  return "$" + num.toFixed(2);
+  return "₹" + (num / 1000).toFixed(1) + "K";
 }
 
 function formatNumber(num) {
   if (isNaN(num)) return "-";
-  return num.toLocaleString("en-US");
+  return num.toLocaleString("en-IN");
 }
 
-// Enhanced date formatting
-function formatDateLabel(dateStr) {
-  const date = new Date(dateStr);
-  return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+function formatPercent(num) {
+  if (isNaN(num)) return "-";
+  return num.toFixed(1) + "%";
 }
 
 function getMonthName(month) {
@@ -130,7 +141,7 @@ function updateKPICards(data) {
     });
   }, 300);
   
-  // Update values
+  // Update values - FIXED: Using Indian Rupee formatting
   if (kpiElements['kpi-total-revenue']) {
     kpiElements['kpi-total-revenue'].textContent = formatCompactCurrency(data.totalRevenue);
   }
@@ -149,15 +160,14 @@ function updateKPICards(data) {
 }
 
 function updateTrendIndicators(data) {
-  // This would typically compare with previous period
-  // For now, we'll simulate some trends
+  // Simulate trend data
   const trends = {
     revenueTrend: Math.random() > 0.5 ? 'positive' : 'negative',
     ordersTrend: Math.random() > 0.3 ? 'positive' : 'negative',
     basketTrend: Math.random() > 0.6 ? 'positive' : 'negative'
   };
   
-  // Update trend indicators in the enhanced UI
+  // Update trend indicators
   document.querySelectorAll('.trend').forEach((trendEl, index) => {
     const trendsArray = Object.values(trends);
     if (index < trendsArray.length) {
@@ -172,6 +182,8 @@ function updateTrendIndicators(data) {
 
 // Main function
 function loadRetailDashboard() {
+  console.log("Loading retail dashboard...");
+  
   // Show loading state
   document.querySelectorAll('.kpi-card p').forEach(el => {
     el.innerHTML = '<span class="loading"></span>';
@@ -182,8 +194,12 @@ function loadRetailDashboard() {
     header: true,
     dynamicTyping: true,
     complete: (results) => {
+      console.log("CSV loaded successfully. Total rows:", results.data.length);
+      
       allRows = results.data.filter(r => Object.keys(r).length > 1);
       filteredRows = [...allRows];
+      
+      console.log("Filtered rows (non-empty):", allRows.length);
       
       // Apply any existing filters
       if (document.getElementById('apply-filters')) {
@@ -231,20 +247,23 @@ function loadRetailDashboard() {
 
 // Fallback demo data
 function useDemoData() {
-  console.log("Using demo data...");
-  // Create sample data for demonstration
+  console.log("Using demo retail data...");
   allRows = [];
   const categories = ['Electronics', 'Clothing', 'Home & Garden', 'Books', 'Toys'];
   const malls = ['Eastgate', 'Westview', 'Central', 'Northside'];
   const payments = ['Credit Card', 'Debit Card', 'Cash', 'Digital Wallet'];
   
+  // Generate realistic Indian Rupee prices (₹100 to ₹50,000)
   for (let i = 0; i < 1000; i++) {
+    const quantity = Math.floor(Math.random() * 5) + 1;
+    const price = Math.floor(Math.random() * 49000) + 100; // ₹100 to ₹50,000
+    
     allRows.push({
       [COLUMN_CATEGORY]: categories[Math.floor(Math.random() * categories.length)],
       [COLUMN_GENDER]: Math.random() > 0.5 ? 'Male' : 'Female',
       [COLUMN_PAYMENT]: payments[Math.floor(Math.random() * payments.length)],
-      [COLUMN_QUANTITY]: Math.floor(Math.random() * 5) + 1,
-      [COLUMN_PRICE]: Math.floor(Math.random() * 500) + 20,
+      [COLUMN_QUANTITY]: quantity,
+      [COLUMN_PRICE]: price,
       [COLUMN_AGE]: Math.floor(Math.random() * 50) + 18,
       [COLUMN_MALL]: malls[Math.floor(Math.random() * malls.length)],
       [COLUMN_DATE]: `2023-${String(Math.floor(Math.random() * 12) + 1).padStart(2, '0')}-${String(Math.floor(Math.random() * 28) + 1).padStart(2, '0')}`
@@ -257,6 +276,8 @@ function useDemoData() {
 }
 
 function buildDashboard(rows) {
+  console.log("Building dashboard with", rows.length, "rows");
+  
   let totalRevenue = 0;
   let totalOrders = 0;
   let totalQuantity = 0;
@@ -274,7 +295,7 @@ function buildDashboard(rows) {
     '55+': 0
   };
 
-  rows.forEach(row => {
+  rows.forEach((row, index) => {
     const qty = Number(row[COLUMN_QUANTITY]) || 0;
     const price = Number(row[COLUMN_PRICE]) || 0;
     const amount = qty * price;
@@ -285,6 +306,11 @@ function buildDashboard(rows) {
     const gender = row[COLUMN_GENDER] || "Unknown";
     const payment = row[COLUMN_PAYMENT] || "Unknown";
     const mall = row[COLUMN_MALL] || "Unknown";
+
+    // Debug first few rows
+    if (index < 3) {
+      console.log(`Row ${index}: Qty=${qty}, Price=₹${price}, Amount=₹${amount}`);
+    }
 
     if (!isNaN(amount) && amount > 0) {
       totalRevenue += amount;
@@ -326,6 +352,13 @@ function buildDashboard(rows) {
     }
   });
 
+  console.log("Dashboard calculations:");
+  console.log("Total Revenue: ₹" + totalRevenue);
+  console.log("Total Orders:", totalOrders);
+  console.log("Average Basket: ₹" + avgBasket);
+  console.log("Top Category:", topCategory);
+  console.log("Revenue by Date:", revenueByDate);
+
   // Prepare KPI data
   const kpiData = {
     totalRevenue,
@@ -356,8 +389,8 @@ function updateStatsHeader(rowCount, totalRevenue) {
     const statItems = statsContainer.querySelectorAll('.stat-value');
     if (statItems.length >= 4) {
       statItems[0].textContent = formatNumber(rowCount);
-      statItems[1].textContent = formatNumber(Math.floor(rowCount / 100) * 100); // Approximate visualizations
-      statItems[2].textContent = formatNumber(rowCount * 10); // Data points approximation
+      statItems[1].textContent = formatNumber(Math.floor(rowCount / 100) * 100);
+      statItems[2].textContent = formatNumber(rowCount * 10);
       statItems[3].textContent = "Interactive";
     }
   }
@@ -367,7 +400,7 @@ function updateProductTable(rows) {
   const tableBody = document.getElementById('products-table')?.querySelector('tbody');
   if (!tableBody) return;
   
-  // Clear existing rows (keep header)
+  // Clear existing rows
   tableBody.innerHTML = '';
   
   // Group by product category for demo
@@ -406,9 +439,9 @@ function updateProductTable(rows) {
         <td>${formatNumber(count)}</td>
         <td class="${revenue > 50000 ? 'revenue-high' : revenue < 10000 ? 'revenue-low' : ''}">${formatCompactCurrency(revenue)}</td>
         <td>${(Math.random() * 1.5 + 3.5).toFixed(1)} ★</td>
-        <td><span class="prediction-score ${revenue > 50000 ? 'low-risk-score' : revenue > 20000 ? 'medium-risk-score' : 'high-risk-score'}" 
-                 style="${revenue > 50000 ? 'background: #06d6a0' : revenue > 20000 ? 'background: #ffd166; color: #333' : 'background: #ef476f'}">
-              ${revenue > 50000 ? 'Top Seller' : revenue > 20000 ? 'Steady' : 'Low Performer'}
+        <td><span class="prediction-score ${revenue > 500000 ? 'low-risk-score' : revenue > 200000 ? 'medium-risk-score' : 'high-risk-score'}" 
+                 style="${revenue > 500000 ? 'background: #06d6a0' : revenue > 200000 ? 'background: #ffd166; color: #333' : 'background: #ef476f'}">
+              ${revenue > 500000 ? 'Top Seller' : revenue > 200000 ? 'Steady' : 'Low Performer'}
             </span></td>
       `;
       tableBody.appendChild(row);
@@ -416,7 +449,13 @@ function updateProductTable(rows) {
 }
 
 function buildSalesOverTimeChart(revenueByDate) {
-  const labels = Object.keys(revenueByDate).sort();
+  // Sort dates chronologically
+  const labels = Object.keys(revenueByDate).sort((a, b) => {
+    const [yearA, monthA] = a.split('-').map(Number);
+    const [yearB, monthB] = b.split('-').map(Number);
+    return yearA === yearB ? monthA - monthB : yearA - yearB;
+  });
+  
   const data = labels.map(l => revenueByDate[l]);
   
   // Format labels for display
@@ -425,8 +464,15 @@ function buildSalesOverTimeChart(revenueByDate) {
     return `${getMonthName(parseInt(month))} ${year}`;
   });
 
+  console.log("Sales Over Time Chart Data:");
+  console.log("Labels:", displayLabels);
+  console.log("Data:", data);
+
   const ctx = document.getElementById("salesOverTime");
-  if (!ctx) return;
+  if (!ctx) {
+    console.error("Canvas element #salesOverTime not found");
+    return;
+  }
   
   // Destroy existing chart if it exists
   if (currentCharts.salesOverTime) {
@@ -809,89 +855,10 @@ function exportData() {
   linkElement.click();
 }
 
-// Real-time updates simulation
-function simulateRealTimeUpdate() {
-  if (filteredRows.length > 0) {
-    // Add a simulated new transaction
-    const newRow = {
-      [COLUMN_CATEGORY]: ['Electronics', 'Clothing', 'Home & Garden', 'Books'][Math.floor(Math.random() * 4)],
-      [COLUMN_GENDER]: Math.random() > 0.5 ? 'Male' : 'Female',
-      [COLUMN_PAYMENT]: ['Credit Card', 'Debit Card', 'Cash', 'Digital Wallet'][Math.floor(Math.random() * 4)],
-      [COLUMN_QUANTITY]: Math.floor(Math.random() * 3) + 1,
-      [COLUMN_PRICE]: Math.floor(Math.random() * 400) + 50,
-      [COLUMN_AGE]: Math.floor(Math.random() * 50) + 18,
-      [COLUMN_MALL]: ['Eastgate', 'Westview', 'Central', 'Northside'][Math.floor(Math.random() * 4)],
-      [COLUMN_DATE]: new Date().toISOString().split('T')[0]
-    };
-    
-    filteredRows.push(newRow);
-    allRows.push(newRow);
-    
-    // Rebuild dashboard with slight delay to show animation
-    setTimeout(() => {
-      buildDashboard(filteredRows);
-      
-      // Show notification
-      showNotification(`New transaction: ${newRow[COLUMN_CATEGORY]} - ${formatCurrency(newRow[COLUMN_QUANTITY] * newRow[COLUMN_PRICE])}`);
-    }, 500);
-  }
-}
-
-function showNotification(message) {
-  // Create notification element
-  const notification = document.createElement('div');
-  notification.style.cssText = `
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: ${CHART_COLORS.success};
-    color: white;
-    padding: 1rem 1.5rem;
-    border-radius: 8px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-    z-index: 10000;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    animation: slideIn 0.3s ease;
-  `;
-  
-  notification.innerHTML = `
-    <i class="fas fa-bell"></i>
-    <span>${message}</span>
-  `;
-  
-  document.body.appendChild(notification);
-  
-  // Remove after 3 seconds
-  setTimeout(() => {
-    notification.style.animation = 'slideOut 0.3s ease';
-    setTimeout(() => {
-      notification.remove();
-    }, 300);
-  }, 3000);
-}
-
-// Add CSS for animations
-const style = document.createElement('style');
-style.textContent = `
-  @keyframes slideIn {
-    from { transform: translateX(100%); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
-  }
-  @keyframes slideOut {
-    from { transform: translateX(0); opacity: 1; }
-    to { transform: translateX(100%); opacity: 0; }
-  }
-`;
-document.head.appendChild(style);
-
 // Run when page loads
 document.addEventListener("DOMContentLoaded", function() {
+  console.log("Retail dashboard initializing...");
   loadRetailDashboard();
-  
-  // Set up real-time updates (every 30 seconds)
-  setInterval(simulateRealTimeUpdate, 30000);
   
   // Set up export button
   const exportBtn = document.getElementById('export-report');
@@ -906,16 +873,18 @@ document.addEventListener("DOMContentLoaded", function() {
       // Simulate loading more data
       const tableBody = document.getElementById('products-table')?.querySelector('tbody');
       if (tableBody) {
-        // Add 5 more rows
+        // Add 5 more rows with Indian Rupee values
         for (let i = 0; i < 5; i++) {
           const row = document.createElement('tr');
+          const revenue = Math.random() * 500000 + 10000;
+          
           row.innerHTML = `
             <td>PROD${String(tableBody.children.length + 1).padStart(3, '0')}</td>
             <td>Additional Product ${String(tableBody.children.length + 1)}</td>
             <td><span class="category-badge category-electronics">Electronics</span></td>
             <td><span class="mall-badge mall-east"></span> Eastgate</td>
             <td>${Math.floor(Math.random() * 1000)}</td>
-            <td class="revenue-high">${formatCompactCurrency(Math.random() * 50000 + 10000)}</td>
+            <td class="revenue-high">${formatCompactCurrency(revenue)}</td>
             <td>${(Math.random() * 1.5 + 3.5).toFixed(1)} ★</td>
             <td><span class="prediction-score medium-risk-score">New</span></td>
           `;
@@ -924,4 +893,14 @@ document.addEventListener("DOMContentLoaded", function() {
       }
     });
   }
+  
+  // Add temporary CSS for debugging
+  const debugStyle = document.createElement('style');
+  debugStyle.textContent = `
+    .chart-container canvas {
+      border: 1px solid #ddd;
+      background: white;
+    }
+  `;
+  document.head.appendChild(debugStyle);
 });
