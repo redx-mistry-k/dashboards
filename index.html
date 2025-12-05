@@ -495,31 +495,39 @@
   <script>
     // Interactive JavaScript enhancements
     document.addEventListener('DOMContentLoaded', function() {
-      // Add active state to navigation links
-      const navLinks = document.querySelectorAll('.navbar nav a');
-      const currentPath = window.location.pathname;
-      
-      navLinks.forEach(link => {
-        if (link.getAttribute('href') === currentPath || 
-            (currentPath === '/' && link.getAttribute('href') === '/retail/')) {
-          link.classList.add('active');
-        }
+  // Add active state to navigation links
+  const navLinks = document.querySelectorAll('.navbar nav a');
+  const currentPath = window.location.pathname;
+  
+  navLinks.forEach(link => {
+    const href = link.getAttribute('href');
+    
+    // REMOVE the problematic condition that was highlighting Retail on Home
+    // Only add active class if href exactly matches currentPath
+    if (href === currentPath) {
+      link.classList.add('active');
+    }
+    // OR if you want to handle home page specifically
+    // else if (href === '/' && currentPath === '/') {
+    //   link.classList.add('active');
+    // }
+    
+    link.addEventListener('click', function(e) {
+      if (this.getAttribute('href').startsWith('#')) {
+        e.preventDefault();
+        const targetId = this.getAttribute('href').substring(1);
+        const targetElement = document.getElementById(targetId);
         
-        link.addEventListener('click', function(e) {
-          if (this.getAttribute('href').startsWith('#')) {
-            e.preventDefault();
-            const targetId = this.getAttribute('href').substring(1);
-            const targetElement = document.getElementById(targetId);
-            
-            if (targetElement) {
-              window.scrollTo({
-                top: targetElement.offsetTop - 80,
-                behavior: 'smooth'
-              });
-            }
-          }
-        });
-      });
+        if (targetElement) {
+          window.scrollTo({
+            top: targetElement.offsetTop - 80,
+            behavior: 'smooth'
+          });
+        }
+      }
+    });
+  });
+});
       
       // Add hover effect to dashboard cards
       const dashboardCards = document.querySelectorAll('.dashboard-card');
@@ -580,5 +588,6 @@
   </script>
 </body>
 </html>
+
 
 
