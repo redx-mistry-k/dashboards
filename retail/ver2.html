@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Retail Sales Dashboard | Sales Analytics & Performance</title>
+  <link rel="stylesheet" href="/assets/css/styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <style>
+    .retail-theme {
+      --dashboard-color: #ef476f;
+      --dashboard-light: rgba(239, 71, 111, 0.1);
+    }
+    
+    .kpi-card:nth-child(1) { border-left-color: #ef476f; }
+    .kpi-card:nth-child(2) { border-left-color: #4361ee; }
+    .kpi-card:nth-child(3) { border-left-color: #06d6a0; }
+    .kpi-card:nth-child(4) { border-left-color: #ffd166; }
+    
+    .revenue-high { color: #06d6a0; font-weight: 600; }
+    .revenue-low { color: #ef476f; font-weight: 600; }
+    
+    .category-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      background: var(--light-gray);
+      margin-right: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    .category-electronics { background: rgba(67, 97, 238, 0.15); color: #4361ee; }
+    .category-clothing { background: rgba(239, 71, 111, 0.15); color: #ef476f; }
+    .category-home { background: rgba(255, 209, 102, 0.15); color: #d4a017; }
+    .category-books { background: rgba(6, 214, 160, 0.15); color: #06d6a0; }
+    
+    .mall-badge {
+      display: inline-block;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      margin-right: 0.5rem;
+    }
+    
+    .mall-east { background: #ef476f; }
+    .mall-west { background: #4361ee; }
+    .mall-central { background: #06d6a0; }
+    .mall-north { background: #ffd166; }
+  </style>
+</head>
+<body class="retail-theme">
+  <header class="navbar">
+    <h1><i class="fas fa-shopping-cart"></i> Retail Sales Dashboard</h1>
+    <nav>
+      <a href="/"><i class="fas fa-home"></i> Home</a>
+      <a href="/retail/" class="active"><i class="fas fa-chart-line"></i> Retail</a>
+      <a href="/telecom/"><i class="fas fa-mobile-alt"></i> Telecom</a>
+      <a href="/hr/"><i class="fas fa-users"></i> HR</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section class="dashboard-header">
+      <div class="dashboard-header-content">
+        <h2><i class="fas fa-chart-bar"></i> Sales Performance & Customer Analytics</h2>
+        <p>Monitor sales performance, analyze customer purchasing patterns, and track revenue across product categories and shopping locations.</p>
+      </div>
+      <div class="date-range">
+        <i class="fas fa-calendar-alt"></i>
+        <span>Data Period: January 2023 - December 2023</span>
+      </div>
+    </section>
+
+    <section class="filter-container">
+      <div class="filter-group">
+        <label for="period-filter"><i class="fas fa-calendar"></i> Time Period</label>
+        <select id="period-filter">
+          <option value="monthly">Monthly</option>
+          <option value="quarterly">Quarterly</option>
+          <option value="yearly">Yearly</option>
+          <option value="custom">Custom Range</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="category-filter"><i class="fas fa-tags"></i> Product Category</label>
+        <select id="category-filter">
+          <option value="all">All Categories</option>
+          <option value="Electronics">Electronics</option>
+          <option value="Clothing">Clothing</option>
+          <option value="Home & Garden">Home & Garden</option>
+          <option value="Books">Books</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="mall-filter"><i class="fas fa-store"></i> Shopping Mall</label>
+        <select id="mall-filter">
+          <option value="all">All Malls</option>
+          <option value="Eastgate">Eastgate Mall</option>
+          <option value="Westview">Westview Plaza</option>
+          <option value="Central">Central Shopping</option>
+          <option value="Northside">Northside Galleria</option>
+        </select>
+      </div>
+      <button class="btn" id="apply-filters">
+        <i class="fas fa-filter"></i> Apply Filters
+      </button>
+      <button class="btn btn-outline" id="reset-filters">
+        <i class="fas fa-redo"></i> Reset
+      </button>
+      <button class="btn" id="export-report">
+        <i class="fas fa-file-export"></i> Export
+      </button>
+    </section>
+
+    <section class="kpi-grid">
+      <div class="kpi-card">
+        <h2><i class="fas fa-money-bill-wave"></i> Total Revenue</h2>
+        <p id="kpi-total-revenue">$2.84M</p>
+        <div class="trend positive">
+          <i class="fas fa-arrow-up"></i>
+          <span>18.7% increase</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <h2><i class="fas fa-shopping-bag"></i> Total Orders</h2>
+        <p id="kpi-total-orders">24,580</p>
+        <div class="trend positive">
+          <i class="fas fa-arrow-up"></i>
+          <span>12.3% increase</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <h2><i class="fas fa-basket-shopping"></i> Average Basket Value</h2>
+        <p id="kpi-avg-basket">$115.60</p>
+        <div class="trend positive">
+          <i class="fas fa-arrow-up"></i>
+          <span>5.7% increase</span>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <h2><i class="fas fa-star"></i> Top Category</h2>
+        <p id="kpi-top-category">Electronics</p>
+        <div class="trend">
+          <i class="fas fa-chart-line"></i>
+          <span>$1.12M revenue</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="charts-grid">
+      <div class="chart-card">
+        <h3><i class="fas fa-chart-line"></i> Sales Trend Over Time</h3>
+        <div class="chart-container">
+          <canvas id="salesOverTime"></canvas>
+        </div>
+        <div style="margin-top: 1rem; font-size: 0.9rem; color: var(--gray-color);">
+          <i class="fas fa-arrow-up" style="color: #06d6a0;"></i>
+          Peak sales in December holiday season (+42%)
+        </div>
+      </div>
+      <div class="chart-card">
+        <h3><i class="fas fa-tags"></i> Revenue by Product Category</h3>
+        <div class="chart-container">
+          <canvas id="revenueByCategory"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <h3><i class="fas fa-venus-mars"></i> Customer Gender Split</h3>
+        <div class="chart-container">
+          <canvas id="genderSplit"></canvas>
+        </div>
+        <div style="margin-top: 1rem; font-size: 0.9rem; color: var(--gray-color);">
+          <i class="fas fa-info-circle"></i>
+          Female customers: 58% of total revenue
+        </div>
+      </div>
+      <div class="chart-card">
+        <h3><i class="fas fa-credit-card"></i> Payment Method Distribution</h3>
+        <div class="chart-container">
+          <canvas id="paymentMethodSplit"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <h3><i class="fas fa-store"></i> Revenue by Shopping Mall</h3>
+        <div class="chart-container">
+          <canvas id="revenueByMall"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <h3><i class="fas fa-user-clock"></i> Customer Age Distribution</h3>
+        <div class="chart-container">
+          <canvas id="customerAge"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <section class="data-table-container">
+      <h3><i class="fas fa-table"></i> Top Performing Products</h3>
+      <div class="table-wrapper">
+        <table id="products-table">
+          <thead>
+            <tr>
+              <th>Product ID</th>
+              <th>Product Name</th>
+              <th>Category</th>
+              <th>Mall</th>
+              <th>Units Sold</th>
+              <th>Revenue</th>
+              <th>Customer Rating</th>
+              <th>Performance</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>PROD001</td>
+              <td>Smartphone X200</td>
+              <td><span class="category-badge category-electronics">Electronics</span></td>
+              <td><span class="mall-badge mall-east"></span> Eastgate</td>
+              <td>1,245</td>
+              <td class="revenue-high">$873,150</td>
+              <td>4.7 ★</td>
+              <td><span class="prediction-score low-risk-score" style="background: #06d6a0;">Top Seller</span></td>
+            </tr>
+            <tr>
+              <td>PROD002</td>
+              <td>Designer Handbag</td>
+              <td><span class="category-badge category-clothing">Clothing</span></td>
+              <td><span class="mall-badge mall-west"></span> Westview</td>
+              <td>890</td>
+              <td class="revenue-high">$267,000</td>
+              <td>4.5 ★</td>
+              <td><span class="prediction-score medium-risk-score">High Growth</span></td>
+            </tr>
+            <!-- More rows would be populated by JavaScript -->
+          </tbody>
+        </table>
+      </div>
+      <div style="margin-top: 1rem; text-align: center;">
+        <button class="btn btn-outline" id="load-more">
+          <i class="fas fa-plus"></i> Load More Products
+        </button>
+        <button class="btn" id="view-top">
+          <i class="fas fa-trophy"></i> View Top 100
+        </button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-content">
+      <p><i class="fas fa-shopping-cart"></i> Retail Sales Dashboard &copy; 2023</p>
+      <p>Sales Performance & Customer Analytics Platform</p>
+      <div class="download-links">
+        <a href="/assets/data/retail_dataset.csv" class="btn btn-outline" style="color: white; border-color: white;">
+          <i class="fas fa-download"></i> Download Dataset
+        </a>
+        <a href="#" class="btn btn-outline" style="color: white; border-color: white;">
+          <i class="fas fa-chart-bar"></i> Sales Report
+        </a>
+        <a href="#" class="btn btn-outline" style="color: white; border-color: white;">
+          <i class="fas fa-user-group"></i> Customer Insights
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="/assets/js/retail.js"></script>
+  <script>
+    // Interactive functionality
+    document.addEventListener('DOMContentLoaded', function() {
+      // Filter functionality
+      const applyFiltersBtn = document.getElementById('apply-filters');
+      const resetFiltersBtn = document.getElementById('reset-filters');
+      const exportReportBtn = document.getElementById('export-report');
+      const loadMoreBtn = document.getElementById('load-more');
+      const viewTopBtn = document.getElementById('view-top');
+      
+      applyFiltersBtn.addEventListener('click', function() {
+        const period = document.getElementById('period-filter').value;
+        const category = document.getElementById('category-filter').value;
+        const mall = document.getElementById('mall-filter').value;
+        
+        // Show loading state
+        applyFiltersBtn.innerHTML = '<span class="loading"></span> Applying...';
+        applyFiltersBtn.disabled = true;
+        
+        // Simulate API call
+        setTimeout(() => {
+          alert(`Filters applied:\n- Period: ${period}\n- Category: ${category}\n- Mall: ${mall}`);
+          applyFiltersBtn.innerHTML = '<i class="fas fa-filter"></i> Apply Filters';
+          applyFiltersBtn.disabled = false;
+        }, 1000);
+      });
+      
+      resetFiltersBtn.addEventListener('click', function() {
+        document.getElementById('period-filter').value = 'monthly';
+        document.getElementById('category-filter').value = 'all';
+        document.getElementById('mall-filter').value = 'all';
+      });
+      
+      exportReportBtn.addEventListener('click', function() {
+        exportReportBtn.innerHTML = '<span class="loading"></span> Exporting...';
+        setTimeout(() => {
+          alert('Sales report exported successfully!');
+          exportReportBtn.innerHTML = '<i class="fas fa-file-export"></i> Export';
+        }, 1500);
+      });
+      
+      loadMoreBtn.addEventListener('click', function() {
+        loadMoreBtn.innerHTML = '<span class="loading"></span> Loading...';
+        
+        setTimeout(() => {
+          // Simulate adding more rows
+          const tableBody = document.querySelector('#products-table tbody');
+          const categories = ['Electronics', 'Clothing', 'Home & Garden', 'Books'];
+          const categoryClasses = ['category-electronics', 'category-clothing', 'category-home', 'category-books'];
+          const malls = ['Eastgate', 'Westview', 'Central', 'Northside'];
+          const mallClasses = ['mall-east', 'mall-west', 'mall-central', 'mall-north'];
+          
+          for (let i = 0; i < 5; i++) {
+            const catIndex = Math.floor(Math.random() * 4);
+            const mallIndex = Math.floor(Math.random() * 4);
+            const revenue = Math.floor(Math.random() * 500000) + 50000;
+            const units = Math.floor(revenue / (Math.random() * 200 + 50));
+            
+            const newRow = document.createElement('tr');
+            newRow.innerHTML = `
+              <td>PROD${Math.floor(Math.random() * 10000)}</td>
+              <td>Product ${String.fromCharCode(65 + Math.floor(Math.random() * 26))}${Math.floor(Math.random() * 1000)}</td>
+              <td><span class="category-badge ${categoryClasses[catIndex]}">${categories[catIndex]}</span></td>
+              <td><span class="mall-badge ${mallClasses[mallIndex]}"></span> ${malls[mallIndex]}</td>
+              <td>${units.toLocaleString()}</td>
+              <td class="${revenue > 300000 ? 'revenue-high' : revenue < 100000 ? 'revenue-low' : ''}">$${revenue.toLocaleString()}</td>
+              <td>${(Math.random() * 1.5 + 3.5).toFixed(1)} ★</td>
+              <td><span class="prediction-score ${revenue > 400000 ? 'low-risk-score' : revenue > 200000 ? 'medium-risk-score' : 'high-risk-score'}" style="${revenue > 400000 ? 'background: #06d6a0' : revenue > 200000 ? 'background: #ffd166; color: #333' : 'background: #ef476f'}">${revenue > 400000 ? 'Top Seller' : revenue > 200000 ? 'Steady' : 'Low Performer'}</span></td>
+            `;
+            tableBody.appendChild(newRow);
+          }
+          
+          loadMoreBtn.innerHTML = '<i class="fas fa-plus"></i> Load More Products';
+        }, 1000);
+      });
+      
+      viewTopBtn.addEventListener('click', function() {
+        viewTopBtn.innerHTML = '<span class="loading"></span> Loading...';
+        setTimeout(() => {
+          alert('Loading top 100 products... This would typically show a detailed view or filter.');
+          viewTopBtn.innerHTML = '<i class="fas fa-trophy"></i> View Top 100';
+        }, 800);
+      });
+      
+      // Real-time update simulation
+      function simulateRealTimeUpdate() {
+        const kpis = ['kpi-total-revenue', 'kpi-total-orders', 'kpi-avg-basket'];
+        const kpi = kpis[Math.floor(Math.random() * kpis.length)];
+        const element = document.getElementById(kpi);
+        
+        if (element) {
+          const currentValue = parseFloat(element.textContent.replace(/[$,]/g, ''));
+          const change = currentValue * 0.01 * (Math.random() > 0.5 ? 1 : -1);
+          const newValue = currentValue + change;
+          
+          // Flash animation
+          element.style.color = change > 0 ? '#06d6a0' : '#ef476f';
+          element.style.transition = 'color 0.3s';
+          
+          // Update value with formatting
+          if (kpi === 'kpi-total-revenue') {
+            element.textContent = '$' + (newValue / 1000000).toFixed(2) + 'M';
+          } else if (kpi === 'kpi-total-orders') {
+            element.textContent = Math.round(newValue).toLocaleString();
+          } else if (kpi === 'kpi-avg-basket') {
+            element.textContent = '$' + newValue.toFixed(2);
+          }
+          
+          setTimeout(() => {
+            element.style.color = '';
+          }, 1000);
+        }
+      }
+      
+      // Simulate real-time updates every 10 seconds
+      setInterval(simulateRealTimeUpdate, 10000);
+    });
+  </script>
+</body>
+</html>
