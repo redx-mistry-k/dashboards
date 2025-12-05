@@ -37,24 +37,31 @@ const CATEGORY_COLORS = {
   'Toys': '#7209b7',
   'Sports': '#4cc9f0',
   'Beauty': '#f72585',
-  'Food': '#38b000'
+  'Food': '#38b000',
+  'Unknown': '#6c757d'
 };
 
 const MALL_COLORS = {
   'Eastgate': '#ef476f',
   'Westview': '#4361ee',
   'Central': '#06d6a0',
-  'Northside': '#ffd166'
+  'Northside': '#ffd166',
+  'Unknown': '#6c757d'
 };
 
 // Indian Rupee formatting functions
 function formatCurrency(num) {
-  if (isNaN(num) || num === 0) return "₹0";
+  if (isNaN(num) || num === 0 || num === null || num === undefined) {
+    return "₹0";
+  }
+  
+  // Convert to number if it's a string
+  num = Number(num);
   
   // Indian numbering system
-  if (num >= 10000000) { // Crores
+  if (num >= 10000000) { // Crores (1 Cr = 10 million)
     return "₹" + (num / 10000000).toFixed(2) + " Cr";
-  } else if (num >= 100000) { // Lakhs
+  } else if (num >= 100000) { // Lakhs (1 L = 100,000)
     return "₹" + (num / 100000).toFixed(2) + " L";
   } else if (num >= 1000) { // Thousands
     return "₹" + (num / 1000).toFixed(2) + "K";
@@ -67,7 +74,11 @@ function formatCurrency(num) {
 }
 
 function formatCompactCurrency(num) {
-  if (isNaN(num) || num === 0) return "₹0";
+  if (isNaN(num) || num === 0 || num === null || num === undefined) {
+    return "₹0";
+  }
+  
+  num = Number(num);
   
   if (num >= 10000000) {
     return "₹" + (num / 10000000).toFixed(2) + " Cr";
@@ -78,13 +89,8 @@ function formatCompactCurrency(num) {
 }
 
 function formatNumber(num) {
-  if (isNaN(num)) return "-";
-  return num.toLocaleString("en-IN");
-}
-
-function formatPercent(num) {
-  if (isNaN(num)) return "-";
-  return num.toFixed(1) + "%";
+  if (isNaN(num) || num === null || num === undefined) return "0";
+  return Number(num).toLocaleString("en-IN");
 }
 
 function getMonthName(month) {
@@ -93,31 +99,52 @@ function getMonthName(month) {
   return months[month - 1] || '';
 }
 
-// Filter rows based on current filters
+// Enhanced filter function - FIXED
 function applyFilters() {
-  const periodFilter = document.getElementById('period-filter')?.value || 'monthly';
   const categoryFilter = document.getElementById('category-filter')?.value || 'all';
   const mallFilter = document.getElementById('mall-filter')?.value || 'all';
   
+  console.log("Applying filters - Category:", categoryFilter, "Mall:", mallFilter);
+  
   filteredRows = allRows.filter(row => {
+    // Skip invalid rows
+    if (!row || Object.keys(row).length === 0) return false;
+    
+    let passes = true;
+    
     // Category filter
-    if (categoryFilter !== 'all' && row[COLUMN_CATEGORY] !== categoryFilter) {
-      return false;
+    if (categoryFilter !== 'all') {
+      const rowCategory = String(row[COLUMN_CATEGORY] || "").trim();
+      passes = passes && (rowCategory === categoryFilter);
     }
     
     // Mall filter
-    if (mallFilter !== 'all' && row[COLUMN_MALL] !== mallFilter) {
-      return false;
+    if (mallFilter !== 'all') {
+      const rowMall = String(row[COLUMN_MALL] || "").trim();
+      passes = passes && (rowMall === mallFilter);
     }
     
-    return true;
+    return passes;
   });
+  
+  console.log(`Filter result: ${filteredRows.length} rows out of ${allRows.length}`);
+  
+  // Update filter status
+  const filterStatus = document.getElementById('filter-status');
+  if (filterStatus) {
+    const statusText = [];
+    if (categoryFilter !== 'all') statusText.push(`Category: ${categoryFilter}`);
+    if (mallFilter !== 'all') statusText.push(`Mall: ${mallFilter}`);
+    filterStatus.textContent = statusText.length > 0 ? `Filters: ${statusText.join(', ')}` : 'No filters applied';
+  }
   
   return filteredRows;
 }
 
-// Update KPI cards with animation
+// Update KPI cards with animation - FIXED
 function updateKPICards(data) {
+  console.log("Updating KPI cards with data:", data);
+  
   const kpiElements = {
     'kpi-total-revenue': document.getElementById('kpi-total-revenue'),
     'kpi-total-orders': document.getElementById('kpi-total-orders'),
@@ -125,34 +152,32 @@ function updateKPICards(data) {
     'kpi-top-category': document.getElementById('kpi-top-category')
   };
   
-  // Add loading animation
-  Object.values(kpiElements).forEach(el => {
-    if (el) {
-      el.style.transform = 'scale(1.05)';
-      el.style.transition = 'transform 0.3s ease';
-    }
-  });
-  
-  setTimeout(() => {
-    Object.values(kpiElements).forEach(el => {
-      if (el) {
-        el.style.transform = 'scale(1)';
-      }
-    });
-  }, 300);
-  
-  // Update values - FIXED: Using Indian Rupee formatting
+  // Update values with PROPER VALIDATION
   if (kpiElements['kpi-total-revenue']) {
-    kpiElements['kpi-total-revenue'].textContent = formatCompactCurrency(data.totalRevenue);
+    const revenue = data.totalRevenue || 0;
+    kpiElements['kpi-total-revenue'].textContent = formatCompactCurrency(revenue);
+    console.log("Total Revenue set to:", kpiElements['kpi-total-revenue'].textContent);
   }
+  
   if (kpiElements['kpi-total-orders']) {
-    kpiElements['kpi-total-orders'].textContent = formatNumber(data.totalOrders);
+    const orders = data.totalOrders || 0;
+    kpiElements['kpi-total-orders'].textContent = formatNumber(orders);
   }
+  
   if (kpiElements['kpi-avg-basket']) {
-    kpiElements['kpi-avg-basket'].textContent = formatCurrency(data.avgBasket);
+    const avgBasket = data.avgBasket || 0;
+    kpiElements['kpi-avg-basket'].textContent = formatCurrency(avgBasket);
+    console.log("Avg Basket set to:", kpiElements['kpi-avg-basket'].textContent);
   }
+  
   if (kpiElements['kpi-top-category']) {
-    kpiElements['kpi-top-category'].textContent = data.topCategory;
+    kpiElements['kpi-top-category'].textContent = data.topCategory || "None";
+    
+    // Update the trend text below it
+    const trendElement = kpiElements['kpi-top-category'].closest('.kpi-card')?.querySelector('.trend');
+    if (trendElement && data.topCategoryRevenue) {
+      trendElement.innerHTML = `<i class="fas fa-chart-line"></i><span>${formatCompactCurrency(data.topCategoryRevenue)} revenue</span>`;
+    }
   }
   
   // Update trend indicators
@@ -168,25 +193,30 @@ function updateTrendIndicators(data) {
   };
   
   // Update trend indicators
-  document.querySelectorAll('.trend').forEach((trendEl, index) => {
+  document.querySelectorAll('.kpi-card .trend').forEach((trendEl, index) => {
     const trendsArray = Object.values(trends);
     if (index < trendsArray.length) {
       const trend = trendsArray[index];
       trendEl.className = `trend ${trend}`;
-      trendEl.innerHTML = trend === 'positive' 
-        ? '<i class="fas fa-arrow-up"></i><span>+' + (Math.random() * 10).toFixed(1) + '%</span>'
-        : '<i class="fas fa-arrow-down"></i><span>-' + (Math.random() * 5).toFixed(1) + '%</span>';
+      
+      // Don't override the top category trend (index 3)
+      if (index !== 3) {
+        const change = (Math.random() * 10).toFixed(1);
+        trendEl.innerHTML = trend === 'positive' 
+          ? '<i class="fas fa-arrow-up"></i><span>+' + change + '%</span>'
+          : '<i class="fas fa-arrow-down"></i><span>-' + change + '%</span>';
+      }
     }
   });
 }
 
-// Main function
+// Main function - FIXED
 function loadRetailDashboard() {
   console.log("Loading retail dashboard...");
   
   // Show loading state
   document.querySelectorAll('.kpi-card p').forEach(el => {
-    el.innerHTML = '<span class="loading"></span>';
+    el.innerHTML = '<span class="loading"></span> Loading...';
   });
   
   Papa.parse(CSV_PATH, {
@@ -196,46 +226,31 @@ function loadRetailDashboard() {
     complete: (results) => {
       console.log("CSV loaded successfully. Total rows:", results.data.length);
       
-      allRows = results.data.filter(r => Object.keys(r).length > 1);
+      // Filter out empty rows and validate data
+      allRows = results.data.filter(r => {
+        if (!r || Object.keys(r).length <= 1) return false;
+        
+        // Validate required fields
+        const price = Number(r[COLUMN_PRICE]) || 0;
+        const quantity = Number(r[COLUMN_QUANTITY]) || 0;
+        
+        return price > 0 && quantity > 0;
+      });
+      
+      console.log("Valid rows after filtering:", allRows.length);
+      
+      // Populate filter dropdowns
+      populateFilterOptions(allRows);
+      
       filteredRows = [...allRows];
       
-      console.log("Filtered rows (non-empty):", allRows.length);
-      
-      // Apply any existing filters
-      if (document.getElementById('apply-filters')) {
-        filteredRows = applyFilters();
-      }
-      
+      // Build initial dashboard
       buildDashboard(filteredRows);
       updateProductTable(filteredRows);
       
-      // Enable filter buttons
-      if (document.getElementById('apply-filters')) {
-        document.getElementById('apply-filters').addEventListener('click', () => {
-          const filtered = applyFilters();
-          buildDashboard(filtered);
-          updateProductTable(filtered);
-        });
-      }
+      // Set up filter event listeners
+      setupFilterListeners();
       
-      if (document.getElementById('reset-filters')) {
-        document.getElementById('reset-filters').addEventListener('click', () => {
-          filteredRows = [...allRows];
-          buildDashboard(filteredRows);
-          updateProductTable(filteredRows);
-          
-          // Reset filter dropdowns
-          if (document.getElementById('category-filter')) {
-            document.getElementById('category-filter').value = 'all';
-          }
-          if (document.getElementById('mall-filter')) {
-            document.getElementById('mall-filter').value = 'all';
-          }
-          if (document.getElementById('period-filter')) {
-            document.getElementById('period-filter').value = 'monthly';
-          }
-        });
-      }
     },
     error: (err) => {
       console.error("Error loading CSV:", err);
@@ -245,38 +260,184 @@ function loadRetailDashboard() {
   });
 }
 
-// Fallback demo data
+// Populate filter dropdowns with actual data
+function populateFilterOptions(rows) {
+  const categories = new Set();
+  const malls = new Set();
+  
+  rows.forEach(row => {
+    if (row[COLUMN_CATEGORY]) categories.add(row[COLUMN_CATEGORY]);
+    if (row[COLUMN_MALL]) malls.add(row[COLUMN_MALL]);
+  });
+  
+  // Category filter
+  const categoryFilter = document.getElementById('category-filter');
+  if (categoryFilter) {
+    // Clear existing options except "All"
+    while (categoryFilter.options.length > 1) {
+      categoryFilter.remove(1);
+    }
+    
+    // Add categories sorted alphabetically
+    Array.from(categories).sort().forEach(category => {
+      const option = document.createElement('option');
+      option.value = category;
+      option.textContent = category;
+      categoryFilter.appendChild(option);
+    });
+  }
+  
+  // Mall filter
+  const mallFilter = document.getElementById('mall-filter');
+  if (mallFilter) {
+    // Clear existing options except "All"
+    while (mallFilter.options.length > 1) {
+      mallFilter.remove(1);
+    }
+    
+    // Add malls sorted alphabetically
+    Array.from(malls).sort().forEach(mall => {
+      const option = document.createElement('option');
+      option.value = mall;
+      option.textContent = mall;
+      mallFilter.appendChild(option);
+    });
+  }
+}
+
+// Set up filter event listeners
+function setupFilterListeners() {
+  const applyBtn = document.getElementById('apply-filters');
+  const resetBtn = document.getElementById('reset-filters');
+  
+  if (applyBtn) {
+    applyBtn.addEventListener('click', () => {
+      console.log("Apply filters clicked");
+      const filtered = applyFilters();
+      buildDashboard(filtered);
+      updateProductTable(filtered);
+      
+      // Show loading state briefly
+      applyBtn.innerHTML = '<i class="fas fa-check"></i> Applied';
+      setTimeout(() => {
+        applyBtn.innerHTML = '<i class="fas fa-filter"></i> Apply Filters';
+      }, 1000);
+    });
+  }
+  
+  if (resetBtn) {
+    resetBtn.addEventListener('click', () => {
+      console.log("Reset filters clicked");
+      filteredRows = [...allRows];
+      buildDashboard(filteredRows);
+      updateProductTable(filteredRows);
+      
+      // Reset filter dropdowns
+      document.getElementById('category-filter').value = 'all';
+      document.getElementById('mall-filter').value = 'all';
+      
+      // Update filter status
+      const filterStatus = document.getElementById('filter-status');
+      if (filterStatus) {
+        filterStatus.textContent = 'No filters applied';
+      }
+      
+      // Show feedback
+      resetBtn.innerHTML = '<i class="fas fa-check"></i> Reset';
+      setTimeout(() => {
+        resetBtn.innerHTML = '<i class="fas fa-redo"></i> Reset';
+      }, 1000);
+    });
+  }
+  
+  // Also apply filters when dropdowns change (optional)
+  document.querySelectorAll('#category-filter, #mall-filter').forEach(select => {
+    select.addEventListener('change', () => {
+      const filterStatus = document.getElementById('filter-status');
+      if (filterStatus) {
+        const category = document.getElementById('category-filter').value;
+        const mall = document.getElementById('mall-filter').value;
+        
+        const statusText = [];
+        if (category !== 'all') statusText.push(`Category: ${category}`);
+        if (mall !== 'all') statusText.push(`Mall: ${mall}`);
+        
+        filterStatus.textContent = statusText.length > 0 
+          ? `Filters: ${statusText.join(', ')} (click Apply)` 
+          : 'No filters applied';
+      }
+    });
+  });
+}
+
+// Fallback demo data - FIXED with Indian Rupees
 function useDemoData() {
-  console.log("Using demo retail data...");
+  console.log("Using demo retail data with Indian Rupees...");
   allRows = [];
-  const categories = ['Electronics', 'Clothing', 'Home & Garden', 'Books', 'Toys'];
+  const categories = ['Electronics', 'Clothing', 'Home & Garden', 'Books'];
   const malls = ['Eastgate', 'Westview', 'Central', 'Northside'];
   const payments = ['Credit Card', 'Debit Card', 'Cash', 'Digital Wallet'];
   
-  // Generate realistic Indian Rupee prices (₹100 to ₹50,000)
-  for (let i = 0; i < 1000; i++) {
+  // Generate realistic Indian Rupee data
+  for (let i = 0; i < 1500; i++) {
+    const category = categories[Math.floor(Math.random() * categories.length)];
+    const mall = malls[Math.floor(Math.random() * malls.length)];
     const quantity = Math.floor(Math.random() * 5) + 1;
-    const price = Math.floor(Math.random() * 49000) + 100; // ₹100 to ₹50,000
+    
+    // Realistic Indian prices in Rupees
+    let price;
+    switch(category) {
+      case 'Electronics': price = Math.floor(Math.random() * 45000) + 5000; // ₹5,000 - ₹50,000
+        break;
+      case 'Clothing': price = Math.floor(Math.random() * 5000) + 500; // ₹500 - ₹5,500
+        break;
+      case 'Home & Garden': price = Math.floor(Math.random() * 15000) + 1000; // ₹1,000 - ₹16,000
+        break;
+      case 'Books': price = Math.floor(Math.random() * 1500) + 100; // ₹100 - ₹1,600
+        break;
+      default: price = Math.floor(Math.random() * 10000) + 500; // ₹500 - ₹10,500
+    }
     
     allRows.push({
-      [COLUMN_CATEGORY]: categories[Math.floor(Math.random() * categories.length)],
+      [COLUMN_CATEGORY]: category,
       [COLUMN_GENDER]: Math.random() > 0.5 ? 'Male' : 'Female',
       [COLUMN_PAYMENT]: payments[Math.floor(Math.random() * payments.length)],
       [COLUMN_QUANTITY]: quantity,
       [COLUMN_PRICE]: price,
       [COLUMN_AGE]: Math.floor(Math.random() * 50) + 18,
-      [COLUMN_MALL]: malls[Math.floor(Math.random() * malls.length)],
+      [COLUMN_MALL]: mall,
       [COLUMN_DATE]: `2023-${String(Math.floor(Math.random() * 12) + 1).padStart(2, '0')}-${String(Math.floor(Math.random() * 28) + 1).padStart(2, '0')}`
     });
   }
   
+  console.log("Generated demo data with", allRows.length, "rows");
+  
+  // Populate filters
+  populateFilterOptions(allRows);
+  
   filteredRows = [...allRows];
   buildDashboard(filteredRows);
   updateProductTable(filteredRows);
+  
+  // Set up filter listeners
+  setupFilterListeners();
 }
 
 function buildDashboard(rows) {
   console.log("Building dashboard with", rows.length, "rows");
+  
+  if (rows.length === 0) {
+    console.warn("No data to display!");
+    // Show empty state
+    updateKPICards({
+      totalRevenue: 0,
+      totalOrders: 0,
+      avgBasket: 0,
+      topCategory: "No data",
+      topCategoryRevenue: 0
+    });
+    return;
+  }
   
   let totalRevenue = 0;
   let totalOrders = 0;
@@ -307,23 +468,22 @@ function buildDashboard(rows) {
     const payment = row[COLUMN_PAYMENT] || "Unknown";
     const mall = row[COLUMN_MALL] || "Unknown";
 
-    // Debug first few rows
-    if (index < 3) {
-      console.log(`Row ${index}: Qty=${qty}, Price=₹${price}, Amount=₹${amount}`);
-    }
-
     if (!isNaN(amount) && amount > 0) {
       totalRevenue += amount;
       totalOrders += 1;
       totalQuantity += qty;
     }
 
-    // Group date by month like 2024-01
+    // Group date by month
     if (rawDate) {
-      const d = new Date(rawDate);
-      if (!isNaN(d)) {
-        const key = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0");
-        revenueByDate[key] = (revenueByDate[key] || 0) + amount;
+      try {
+        const d = new Date(rawDate);
+        if (!isNaN(d.getTime())) {
+          const key = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0");
+          revenueByDate[key] = (revenueByDate[key] || 0) + amount;
+        }
+      } catch (e) {
+        console.warn("Invalid date:", rawDate);
       }
     }
 
@@ -343,7 +503,7 @@ function buildDashboard(rows) {
   const avgBasket = totalOrders > 0 ? totalRevenue / totalOrders : 0;
 
   // Find top category
-  let topCategory = "-";
+  let topCategory = "None";
   let topCategoryRevenue = 0;
   Object.entries(revenueByCategory).forEach(([cat, rev]) => {
     if (rev > topCategoryRevenue) {
@@ -356,8 +516,7 @@ function buildDashboard(rows) {
   console.log("Total Revenue: ₹" + totalRevenue);
   console.log("Total Orders:", totalOrders);
   console.log("Average Basket: ₹" + avgBasket);
-  console.log("Top Category:", topCategory);
-  console.log("Revenue by Date:", revenueByDate);
+  console.log("Top Category:", topCategory, "Revenue: ₹" + topCategoryRevenue);
 
   // Prepare KPI data
   const kpiData = {
@@ -365,6 +524,7 @@ function buildDashboard(rows) {
     totalOrders,
     avgBasket,
     topCategory,
+    topCategoryRevenue,
     totalQuantity
   };
 
@@ -389,9 +549,9 @@ function updateStatsHeader(rowCount, totalRevenue) {
     const statItems = statsContainer.querySelectorAll('.stat-value');
     if (statItems.length >= 4) {
       statItems[0].textContent = formatNumber(rowCount);
-      statItems[1].textContent = formatNumber(Math.floor(rowCount / 100) * 100);
-      statItems[2].textContent = formatNumber(rowCount * 10);
-      statItems[3].textContent = "Interactive";
+      statItems[1].textContent = "6"; // Number of charts
+      statItems[2].textContent = formatNumber(rowCount * 5); // Data points estimate
+      statItems[3].textContent = "Yes"; // Interactive features
     }
   }
 }
@@ -403,7 +563,19 @@ function updateProductTable(rows) {
   // Clear existing rows
   tableBody.innerHTML = '';
   
-  // Group by product category for demo
+  if (rows.length === 0) {
+    const emptyRow = document.createElement('tr');
+    emptyRow.innerHTML = `
+      <td colspan="8" style="text-align: center; padding: 2rem; color: var(--gray-color);">
+        <i class="fas fa-search" style="font-size: 2rem; margin-bottom: 1rem; display: block;"></i>
+        No products match the current filters
+      </td>
+    `;
+    tableBody.appendChild(emptyRow);
+    return;
+  }
+  
+  // Group by product category
   const categoryRevenue = {};
   const categoryCount = {};
   
@@ -428,7 +600,6 @@ function updateProductTable(rows) {
     .slice(0, 10)
     .forEach(([category, revenue], index) => {
       const count = categoryCount[category] || 0;
-      const avgPrice = count > 0 ? revenue / count : 0;
       
       const row = document.createElement('tr');
       row.innerHTML = `
@@ -437,7 +608,7 @@ function updateProductTable(rows) {
         <td><span class="category-badge category-${category.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-')}">${category}</span></td>
         <td><span class="mall-badge mall-${['east', 'west', 'central', 'northside'][index % 4]}"></span> ${['Eastgate', 'Westview', 'Central', 'Northside'][index % 4]}</td>
         <td>${formatNumber(count)}</td>
-        <td class="${revenue > 50000 ? 'revenue-high' : revenue < 10000 ? 'revenue-low' : ''}">${formatCompactCurrency(revenue)}</td>
+        <td class="${revenue > 500000 ? 'revenue-high' : revenue < 100000 ? 'revenue-low' : ''}">${formatCompactCurrency(revenue)}</td>
         <td>${(Math.random() * 1.5 + 3.5).toFixed(1)} ★</td>
         <td><span class="prediction-score ${revenue > 500000 ? 'low-risk-score' : revenue > 200000 ? 'medium-risk-score' : 'high-risk-score'}" 
                  style="${revenue > 500000 ? 'background: #06d6a0' : revenue > 200000 ? 'background: #ffd166; color: #333' : 'background: #ef476f'}">
@@ -456,17 +627,13 @@ function buildSalesOverTimeChart(revenueByDate) {
     return yearA === yearB ? monthA - monthB : yearA - yearB;
   });
   
-  const data = labels.map(l => revenueByDate[l]);
+  const data = labels.map(l => revenueByDate[l] || 0);
   
   // Format labels for display
   const displayLabels = labels.map(label => {
     const [year, month] = label.split('-');
     return `${getMonthName(parseInt(month))} ${year}`;
   });
-
-  console.log("Sales Over Time Chart Data:");
-  console.log("Labels:", displayLabels);
-  console.log("Data:", data);
 
   const ctx = document.getElementById("salesOverTime");
   if (!ctx) {
@@ -484,7 +651,7 @@ function buildSalesOverTimeChart(revenueByDate) {
     data: {
       labels: displayLabels,
       datasets: [{
-        label: "Monthly Revenue",
+        label: "Monthly Revenue (₹)",
         data,
         borderColor: CHART_COLORS.primary,
         backgroundColor: CHART_COLORS.primary + '20',
@@ -542,7 +709,7 @@ function buildRevenueByCategoryChart(revenueByCategory) {
     .sort(([,a], [,b]) => b - a);
   
   const labels = entries.map(([label]) => label);
-  const data = entries.map(([,value]) => value);
+  const data = entries.map(([,value]) => value || 0);
   
   // Generate colors based on category
   const backgroundColors = labels.map(label => 
@@ -561,7 +728,7 @@ function buildRevenueByCategoryChart(revenueByCategory) {
     data: {
       labels,
       datasets: [{
-        label: "Revenue by Category",
+        label: "Revenue by Category (₹)",
         data,
         backgroundColor: backgroundColors,
         borderColor: backgroundColors.map(color => color + 'CC'),
@@ -610,7 +777,7 @@ function buildRevenueByCategoryChart(revenueByCategory) {
 
 function buildGenderSplitChart(countByGender) {
   const labels = Object.keys(countByGender);
-  const data = labels.map(l => countByGender[l]);
+  const data = labels.map(l => countByGender[l] || 0);
   
   const backgroundColors = [
     CHART_COLORS.primary,
@@ -653,7 +820,7 @@ function buildGenderSplitChart(countByGender) {
           callbacks: {
             label: function(context) {
               const total = context.dataset.data.reduce((a, b) => a + b, 0);
-              const percentage = ((context.raw / total) * 100).toFixed(1);
+              const percentage = total > 0 ? ((context.raw / total) * 100).toFixed(1) : 0;
               return `${context.label}: ${formatNumber(context.raw)} (${percentage}%)`;
             }
           }
@@ -665,7 +832,7 @@ function buildGenderSplitChart(countByGender) {
 
 function buildPaymentSplitChart(countByPayment) {
   const labels = Object.keys(countByPayment);
-  const data = labels.map(l => countByPayment[l]);
+  const data = labels.map(l => countByPayment[l] || 0);
   
   const backgroundColors = [
     CHART_COLORS.primary,
@@ -709,7 +876,7 @@ function buildPaymentSplitChart(countByPayment) {
           callbacks: {
             label: function(context) {
               const total = context.dataset.data.reduce((a, b) => a + b, 0);
-              const percentage = ((context.raw / total) * 100).toFixed(1);
+              const percentage = total > 0 ? ((context.raw / total) * 100).toFixed(1) : 0;
               return `${context.label}: ${formatNumber(context.raw)} (${percentage}%)`;
             }
           }
@@ -722,7 +889,7 @@ function buildPaymentSplitChart(countByPayment) {
 function buildRevenueByMallChart(revenueByMall) {
   const entries = Object.entries(revenueByMall);
   const labels = entries.map(([label]) => label);
-  const data = entries.map(([,value]) => value);
+  const data = entries.map(([,value]) => value || 0);
   
   const backgroundColors = labels.map(label => 
     MALL_COLORS[label] || CHART_COLORS.gray
@@ -740,7 +907,7 @@ function buildRevenueByMallChart(revenueByMall) {
     data: {
       labels,
       datasets: [{
-        label: "Revenue by Mall",
+        label: "Revenue by Mall (₹)",
         data,
         backgroundColor: backgroundColors,
         borderColor: backgroundColors.map(color => color + 'CC'),
@@ -826,6 +993,13 @@ function buildCustomerAgeChart(countByAgeGroup) {
             padding: 20,
             usePointStyle: true,
           }
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              return `${context.label}: ${formatNumber(context.raw)} customers`;
+            }
+          }
         }
       },
       scales: {
@@ -844,10 +1018,21 @@ function buildCustomerAgeChart(countByAgeGroup) {
 
 // Export functionality
 function exportData() {
-  const dataStr = JSON.stringify(filteredRows.slice(0, 1000), null, 2);
+  const exportData = filteredRows.slice(0, 1000).map(row => ({
+    'Product ID': `PROD${Math.floor(Math.random() * 1000)}`,
+    'Category': row[COLUMN_CATEGORY],
+    'Mall': row[COLUMN_MALL],
+    'Quantity': row[COLUMN_QUANTITY],
+    'Price': formatCurrency(row[COLUMN_PRICE]),
+    'Total': formatCurrency((row[COLUMN_QUANTITY] || 0) * (row[COLUMN_PRICE] || 0)),
+    'Gender': row[COLUMN_GENDER],
+    'Payment Method': row[COLUMN_PAYMENT]
+  }));
+  
+  const dataStr = JSON.stringify(exportData, null, 2);
   const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
   
-  const exportFileDefaultName = 'retail_data_export.json';
+  const exportFileDefaultName = 'retail_sales_data.json';
   
   const linkElement = document.createElement('a');
   linkElement.setAttribute('href', dataUri);
@@ -872,15 +1057,13 @@ document.addEventListener("DOMContentLoaded", function() {
     loadMoreBtn.addEventListener('click', () => {
       // Simulate loading more data
       const tableBody = document.getElementById('products-table')?.querySelector('tbody');
-      if (tableBody) {
-        // Add 5 more rows with Indian Rupee values
+      if (tableBody && tableBody.children.length > 0 && !tableBody.children[0].textContent.includes('No products')) {
         for (let i = 0; i < 5; i++) {
-          const row = document.createElement('tr');
           const revenue = Math.random() * 500000 + 10000;
-          
+          const row = document.createElement('tr');
           row.innerHTML = `
-            <td>PROD${String(tableBody.children.length + 1).padStart(3, '0')}</td>
-            <td>Additional Product ${String(tableBody.children.length + 1)}</td>
+            <td>PROD${String(tableBody.children.length + 1000).padStart(4, '0')}</td>
+            <td>Additional Product ${tableBody.children.length + 1}</td>
             <td><span class="category-badge category-electronics">Electronics</span></td>
             <td><span class="mall-badge mall-east"></span> Eastgate</td>
             <td>${Math.floor(Math.random() * 1000)}</td>
@@ -893,14 +1076,4 @@ document.addEventListener("DOMContentLoaded", function() {
       }
     });
   }
-  
-  // Add temporary CSS for debugging
-  const debugStyle = document.createElement('style');
-  debugStyle.textContent = `
-    .chart-container canvas {
-      border: 1px solid #ddd;
-      background: white;
-    }
-  `;
-  document.head.appendChild(debugStyle);
 });
