@@ -353,6 +353,8 @@ function useDemoData() {
 }
 
 function buildTelecomDashboard(rows) {
+  console.log("Building telecom dashboard with", rows.length, "rows");
+  
   const totalCustomers = rows.length;
 
   let churned = 0;
@@ -430,6 +432,9 @@ function buildTelecomDashboard(rows) {
     phoneServiceStats[phoneService].total += 1;
     if (churn === "Yes") phoneServiceStats[phoneService].churned += 1;
   });
+
+  console.log("Phone Service Stats:", phoneServiceStats);
+  console.log("Tech Support Stats:", techSupportStats);
 
   const churnRate = totalCustomers ? (churned / totalCustomers) * 100 : 0;
   const avgTenure = totalCustomers ? totalTenure / totalCustomers : 0;
@@ -558,7 +563,10 @@ function buildChurnOverallChart(churnCounts) {
   ];
 
   const ctx = document.getElementById("churnOverall");
-  if (!ctx) return;
+  if (!ctx) {
+    console.error("Canvas element #churnOverall not found");
+    return;
+  }
   
   // Destroy existing chart if it exists
   if (currentCharts.churnOverall) {
@@ -616,7 +624,10 @@ function buildChurnByContractChart(stats) {
   );
 
   const ctx = document.getElementById("churnByContract");
-  if (!ctx) return;
+  if (!ctx) {
+    console.error("Canvas element #churnByContract not found");
+    return;
+  }
   
   if (currentCharts.churnByContract) {
     currentCharts.churnByContract.destroy();
@@ -685,7 +696,10 @@ function buildChurnByInternetChart(stats) {
   );
 
   const ctx = document.getElementById("churnByInternet");
-  if (!ctx) return;
+  if (!ctx) {
+    console.error("Canvas element #churnByInternet not found");
+    return;
+  }
   
   if (currentCharts.churnByInternet) {
     currentCharts.churnByInternet.destroy();
@@ -757,7 +771,10 @@ function buildChurnByTenureChart(stats) {
   });
 
   const ctx = document.getElementById("churnByTenure");
-  if (!ctx) return;
+  if (!ctx) {
+    console.error("Canvas element #churnByTenure not found");
+    return;
+  }
   
   if (currentCharts.churnByTenure) {
     currentCharts.churnByTenure.destroy();
@@ -815,81 +832,107 @@ function buildChurnByTenureChart(stats) {
 }
 
 function buildChurnByPhoneChart(stats) {
+  console.log("Building Churn by Phone chart with data:", stats);
+  
   const labels = Object.keys(stats);
   const data = labels.map(label => {
     const s = stats[label];
     return s.total ? (s.churned / s.total) * 100 : 0;
   });
   
+  console.log("Phone chart labels:", labels);
+  console.log("Phone chart data:", data);
+  
   const backgroundColors = [
-    CHART_COLORS.primary,
-    CHART_COLORS.gray,
-    CHART_COLORS.accent
+    CHART_COLORS.primary,  // Yes
+    CHART_COLORS.gray,     // No
+    CHART_COLORS.accent    // Other
   ];
 
   const ctx = document.getElementById("churnByPhone");
-  if (!ctx) return;
+  if (!ctx) {
+    console.error("Canvas element #churnByPhone not found!");
+    console.log("Searching for canvas elements...");
+    const allCanvases = document.querySelectorAll('canvas');
+    console.log("All canvas elements:", allCanvases);
+    return;
+  }
+  
+  console.log("Found canvas element:", ctx);
   
   if (currentCharts.churnByPhone) {
+    console.log("Destroying existing phone chart");
     currentCharts.churnByPhone.destroy();
   }
 
-  currentCharts.churnByPhone = new Chart(ctx, {
-    type: "bar",
-    data: {
-      labels,
-      datasets: [{
-        label: "Churn Rate (%)",
-        data,
-        backgroundColor: backgroundColors,
-        borderColor: backgroundColors.map(color => color + 'CC'),
-        borderWidth: 1,
-        borderRadius: 6,
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          display: false
+  try {
+    currentCharts.churnByPhone = new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels,
+        datasets: [{
+          label: "Churn Rate (%)",
+          data,
+          backgroundColor: backgroundColors,
+          borderColor: backgroundColors.map(color => color + 'CC'),
+          borderWidth: 1,
+          borderRadius: 6,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                const total = stats[context.label].total;
+                const churned = stats[context.label].churned;
+                return `${context.raw.toFixed(1)}% (${churned} of ${total} customers)`;
+              }
+            }
+          }
         },
-        tooltip: {
-          callbacks: {
-            label: function(context) {
-              const total = stats[context.label].total;
-              const churned = stats[context.label].churned;
-              return `${context.raw.toFixed(1)}% (${churned} of ${total} customers)`;
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: (v) => v + "%"
+            },
+            grid: {
+              drawBorder: false
+            }
+          },
+          x: {
+            grid: {
+              display: false
             }
           }
         }
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          ticks: {
-            callback: (v) => v + "%"
-          },
-          grid: {
-            drawBorder: false
-          }
-        },
-        x: {
-          grid: {
-            display: false
-          }
-        }
       }
-    }
-  });
+    });
+    
+    console.log("✅ Phone chart created successfully");
+    
+  } catch (error) {
+    console.error("❌ Error creating phone chart:", error);
+  }
 }
 
 function buildChurnByTechSupportChart(stats) {
+  console.log("Building Churn by Tech Support chart with data:", stats);
+  
   const labels = Object.keys(stats);
   const data = labels.map(label => {
     const s = stats[label];
     return s.total ? (s.churned / s.total) * 100 : 0;
   });
+  
+  console.log("Tech Support chart labels:", labels);
+  console.log("Tech Support chart data:", data);
   
   const backgroundColors = [
     CHART_COLORS.success,  // Yes
@@ -898,60 +941,72 @@ function buildChurnByTechSupportChart(stats) {
   ];
 
   const ctx = document.getElementById("churnByTechSupport");
-  if (!ctx) return;
+  if (!ctx) {
+    console.error("Canvas element #churnByTechSupport not found!");
+    return;
+  }
   
   if (currentCharts.churnByTechSupport) {
+    console.log("Destroying existing tech support chart");
     currentCharts.churnByTechSupport.destroy();
   }
 
-  currentCharts.churnByTechSupport = new Chart(ctx, {
-    type: "bar",
-    data: {
-      labels,
-      datasets: [{
-        label: "Churn Rate (%)",
-        data,
-        backgroundColor: backgroundColors,
-        borderColor: backgroundColors.map(color => color + 'CC'),
-        borderWidth: 1,
-        borderRadius: 6,
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          display: false
+  try {
+    currentCharts.churnByTechSupport = new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels,
+        datasets: [{
+          label: "Churn Rate (%)",
+          data,
+          backgroundColor: backgroundColors,
+          borderColor: backgroundColors.map(color => color + 'CC'),
+          borderWidth: 1,
+          borderRadius: 6,
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: false
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                // FIXED BUG HERE: Use context.label instead of undefined 'label' variable
+                const total = stats[context.label].total;
+                const churned = stats[context.label].churned;
+                return `${context.raw.toFixed(1)}% (${churned} of ${total} customers)`;
+              }
+            }
+          }
         },
-        tooltip: {
-          callbacks: {
-            label: function(context) {
-              const total = stats[context.label].total;
-              const churned = stats[label].churned;
-              return `${context.raw.toFixed(1)}% (${churned} of ${total} customers)`;
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: (v) => v + "%"
+            },
+            grid: {
+              drawBorder: false
+            }
+          },
+          x: {
+            grid: {
+              display: false
             }
           }
         }
-      },
-      scales: {
-        y: {
-          beginAtZero: true,
-          ticks: {
-            callback: (v) => v + "%"
-          },
-          grid: {
-            drawBorder: false
-          }
-        },
-        x: {
-          grid: {
-            display: false
-          }
-        }
       }
-    }
-  });
+    });
+    
+    console.log("✅ Tech Support chart created successfully");
+    
+  } catch (error) {
+    console.error("❌ Error creating tech support chart:", error);
+  }
 }
 
 function sendRetentionOffer(customerId, buttonElement) {
@@ -1085,6 +1140,7 @@ document.head.appendChild(style);
 
 // Run when page loads
 document.addEventListener("DOMContentLoaded", function() {
+  console.log("Telecom dashboard loading...");
   loadTelecomDashboard();
   
   // Set up real-time updates (every 40 seconds)
