@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Telecom Customer Churn Dashboard</title>
+
+  <link rel="stylesheet" href="/assets/css/styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+</head>
+<body>
+  <header class="navbar">
+    <h1>Telecom Customer Churn Dashboard</h1>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/retail/">Retail</a>
+      <a href="/telecom/">Telecom</a>
+      <a href="/hr/">HR</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section class="kpi-grid">
+      <div class="kpi-card">
+        <h2>Total Customers</h2>
+        <p id="kpi-total-customers">Loading...</p>
+      </div>
+      <div class="kpi-card">
+        <h2>Churn Rate</h2>
+        <p id="kpi-churn-rate">Loading...</p>
+      </div>
+      <div class="kpi-card">
+        <h2>Avg Tenure (months)</h2>
+        <p id="kpi-avg-tenure">Loading...</p>
+      </div>
+      <div class="kpi-card">
+        <h2>Avg Monthly Charges</h2>
+        <p id="kpi-avg-charges">Loading...</p>
+      </div>
+    </section>
+
+    <section class="charts-grid">
+      <div class="chart-card">
+        <h3>Churn vs Non-Churn</h3>
+        <canvas id="churnOverall"></canvas>
+      </div>
+      <div class="chart-card">
+        <h3>Churn Rate by Contract Type</h3>
+        <canvas id="churnByContract"></canvas>
+      </div>
+      <div class="chart-card">
+        <h3>Churn Rate by Internet Service</h3>
+        <canvas id="churnByInternet"></canvas>
+      </div>
+      <div class="chart-card">
+        <h3>Churn Rate by Tenure Group</h3>
+        <canvas id="churnByTenure"></canvas>
+      </div>
+    </section>
+  </main>
+
+  <script src="/assets/js/telecom.js"></script>
+</body>
+</html>

@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>HR Employee Attrition Dashboard</title>
+
+  <link rel="stylesheet" href="/assets/css/styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+</head>
+<body>
+  <header class="navbar">
+    <h1>HR / Employee Attrition Dashboard</h1>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/retail/">Retail</a>
+      <a href="/telecom/">Telecom</a>
+      <a href="/hr/">HR</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section class="kpi-grid">
+      <div class="kpi-card">
+        <h2>Total Employees</h2>
+        <p id="kpi-total-employees">Loading...</p>
+      </div>
+      <div class="kpi-card">
+        <h2>Attrition Rate</h2>
+        <p id="kpi-attrition-rate">Loading...</p>
+      </div>
+      <div class="kpi-card">
+        <h2>Average Age</h2>
+        <p id="kpi-avg-age">Loading...</p>
+      </div>
+      <div class="kpi-card">
+        <h2>Avg Years at Company</h2>
+        <p id="kpi-avg-years">Loading...</p>
+      </div>
+    </section>
+
+    <section class="charts-grid">
+      <div class="chart-card">
+        <h3>Attrition vs Active</h3>
+        <canvas id="attritionOverall"></canvas>
+      </div>
+      <div class="chart-card">
+        <h3>Attrition by Department</h3>
+        <canvas id="attritionByDept"></canvas>
+      </div>
+      <div class="chart-card">
+        <h3>Attrition by Job Role</h3>
+        <canvas id="attritionByRole"></canvas>
+      </div>
+      <div class="chart-card">
+        <h3>Attrition by Age Group</h3>
+        <canvas id="attritionByAge"></canvas>
+      </div>
+    </section>
+  </main>
+
+  <script src="/assets/js/hr.js"></script>
+</body>
+</html>
