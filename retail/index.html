@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Retail Sales Dashboard</title>
+
+  <!-- Basic styles -->
+  <link rel="stylesheet" href="/assets/css/styles.css" />
+
+  <!-- Chart.js for charts -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- PapaParse for CSV parsing -->
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+</head>
+<body>
+  <header class="navbar">
+    <h1>Retail Sales Dashboard</h1>
+    <nav>
+      <a href="/">Home</a>
+      <a href="/retail/">Retail</a>
+      <a href="/telecom/">Telecom</a>
+      <a href="/hr/">HR</a>
+    </nav>
+  </header>
+
+  <main class="container">
+    <!-- KPI cards -->
+    <section class="kpi-grid">
+      <div class="kpi-card">
+        <h2>Total Revenue</h2>
+        <p id="kpi-total-revenue">Loading...</p>
+      </div>
+      <div class="kpi-card">
+        <h2>Total Orders</h2>
+        <p id="kpi-total-orders">Loading...</p>
+      </div>
+      <div class="kpi-card">
+        <h2>Average Basket Value</h2>
+        <p id="kpi-avg-basket">Loading...</p>
+      </div>
+      <div class="kpi-card">
+        <h2>Top Category</h2>
+        <p id="kpi-top-category">Loading...</p>
+      </div>
+    </section>
+
+    <!-- Charts -->
+    <section class="charts-grid">
+      <div class="chart-card">
+        <h3>Sales Over Time</h3>
+        <canvas id="salesOverTime"></canvas>
+      </div>
+      <div class="chart-card">
+        <h3>Revenue by Category</h3>
+        <canvas id="revenueByCategory"></canvas>
+      </div>
+      <div class="chart-card">
+        <h3>Gender Split</h3>
+        <canvas id="genderSplit"></canvas>
+      </div>
+      <div class="chart-card">
+        <h3>Payment Method Split</h3>
+        <canvas id="paymentMethodSplit"></canvas>
+      </div>
+    </section>
+  </main>
+
+  <script src="/assets/js/retail.js"></script>
+</body>
+</html>
