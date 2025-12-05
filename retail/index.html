@@ -70,6 +70,9 @@
       <div class="dashboard-header-content">
         <h2><i class="fas fa-chart-bar"></i> Sales Performance & Customer Analytics</h2>
         <p>Monitor sales performance, analyze customer purchasing patterns, and track revenue across product categories and shopping locations.</p>
+        <div id="filter-status" style="font-size: 0.9rem; color: var(--gray-color); margin-top: 0.5rem; font-style: italic;">
+          No filters applied
+        </div>
       </div>
       <div class="date-range">
         <i class="fas fa-calendar-alt"></i>
@@ -91,20 +94,14 @@
         <label for="category-filter"><i class="fas fa-tags"></i> Product Category</label>
         <select id="category-filter">
           <option value="all">All Categories</option>
-          <option value="Electronics">Electronics</option>
-          <option value="Clothing">Clothing</option>
-          <option value="Home & Garden">Home & Garden</option>
-          <option value="Books">Books</option>
+          <!-- Options will be populated by JavaScript -->
         </select>
       </div>
       <div class="filter-group">
         <label for="mall-filter"><i class="fas fa-store"></i> Shopping Mall</label>
         <select id="mall-filter">
           <option value="all">All Malls</option>
-          <option value="Eastgate">Eastgate Mall</option>
-          <option value="Westview">Westview Plaza</option>
-          <option value="Central">Central Shopping</option>
-          <option value="Northside">Northside Galleria</option>
+          <!-- Options will be populated by JavaScript -->
         </select>
       </div>
       <button class="btn" id="apply-filters">
@@ -121,34 +118,34 @@
     <section class="kpi-grid">
       <div class="kpi-card">
         <h2><i class="fas fa-money-bill-wave"></i> Total Revenue</h2>
-        <p id="kpi-total-revenue">$2.84M</p>
+        <p id="kpi-total-revenue">Loading...</p>
         <div class="trend positive">
           <i class="fas fa-arrow-up"></i>
-          <span>18.7% increase</span>
+          <span>--.--% increase</span>
         </div>
       </div>
       <div class="kpi-card">
         <h2><i class="fas fa-shopping-bag"></i> Total Orders</h2>
-        <p id="kpi-total-orders">24,580</p>
+        <p id="kpi-total-orders">Loading...</p>
         <div class="trend positive">
           <i class="fas fa-arrow-up"></i>
-          <span>12.3% increase</span>
+          <span>--.--% increase</span>
         </div>
       </div>
       <div class="kpi-card">
         <h2><i class="fas fa-basket-shopping"></i> Average Basket Value</h2>
-        <p id="kpi-avg-basket">$115.60</p>
+        <p id="kpi-avg-basket">Loading...</p>
         <div class="trend positive">
           <i class="fas fa-arrow-up"></i>
-          <span>5.7% increase</span>
+          <span>--.--% increase</span>
         </div>
       </div>
       <div class="kpi-card">
         <h2><i class="fas fa-star"></i> Top Category</h2>
-        <p id="kpi-top-category">Electronics</p>
+        <p id="kpi-top-category">Loading...</p>
         <div class="trend">
           <i class="fas fa-chart-line"></i>
-          <span>$1.12M revenue</span>
+          <span>-- revenue</span>
         </div>
       </div>
     </section>
@@ -161,7 +158,7 @@
         </div>
         <div style="margin-top: 1rem; font-size: 0.9rem; color: var(--gray-color);">
           <i class="fas fa-arrow-up" style="color: #06d6a0;"></i>
-          Peak sales in December holiday season (+42%)
+          <span id="sales-trend-text">Loading sales trend...</span>
         </div>
       </div>
       <div class="chart-card">
@@ -177,7 +174,7 @@
         </div>
         <div style="margin-top: 1rem; font-size: 0.9rem; color: var(--gray-color);">
           <i class="fas fa-info-circle"></i>
-          Female customers: 58% of total revenue
+          <span id="gender-insight-text">Loading gender insights...</span>
         </div>
       </div>
       <div class="chart-card">
@@ -217,27 +214,13 @@
             </tr>
           </thead>
           <tbody>
+            <!-- Rows will be populated by JavaScript -->
             <tr>
-              <td>PROD001</td>
-              <td>Smartphone X200</td>
-              <td><span class="category-badge category-electronics">Electronics</span></td>
-              <td><span class="mall-badge mall-east"></span> Eastgate</td>
-              <td>1,245</td>
-              <td class="revenue-high">$873,150</td>
-              <td>4.7 ★</td>
-              <td><span class="prediction-score low-risk-score" style="background: #06d6a0;">Top Seller</span></td>
+              <td colspan="8" style="text-align: center; padding: 2rem; color: var(--gray-color);">
+                <i class="fas fa-spinner fa-spin" style="margin-right: 0.5rem;"></i>
+                Loading product data...
+              </td>
             </tr>
-            <tr>
-              <td>PROD002</td>
-              <td>Designer Handbag</td>
-              <td><span class="category-badge category-clothing">Clothing</span></td>
-              <td><span class="mall-badge mall-west"></span> Westview</td>
-              <td>890</td>
-              <td class="revenue-high">$267,000</td>
-              <td>4.5 ★</td>
-              <td><span class="prediction-score medium-risk-score">High Growth</span></td>
-            </tr>
-            <!-- More rows would be populated by JavaScript -->
           </tbody>
         </table>
       </div>
@@ -271,123 +254,6 @@
   </footer>
 
   <script src="/assets/js/retail.js"></script>
-  <script>
-    // Interactive functionality
-    document.addEventListener('DOMContentLoaded', function() {
-      // Filter functionality
-      const applyFiltersBtn = document.getElementById('apply-filters');
-      const resetFiltersBtn = document.getElementById('reset-filters');
-      const exportReportBtn = document.getElementById('export-report');
-      const loadMoreBtn = document.getElementById('load-more');
-      const viewTopBtn = document.getElementById('view-top');
-      
-      applyFiltersBtn.addEventListener('click', function() {
-        const period = document.getElementById('period-filter').value;
-        const category = document.getElementById('category-filter').value;
-        const mall = document.getElementById('mall-filter').value;
-        
-        // Show loading state
-        applyFiltersBtn.innerHTML = '<span class="loading"></span> Applying...';
-        applyFiltersBtn.disabled = true;
-        
-        // Simulate API call
-        setTimeout(() => {
-          alert(`Filters applied:\n- Period: ${period}\n- Category: ${category}\n- Mall: ${mall}`);
-          applyFiltersBtn.innerHTML = '<i class="fas fa-filter"></i> Apply Filters';
-          applyFiltersBtn.disabled = false;
-        }, 1000);
-      });
-      
-      resetFiltersBtn.addEventListener('click', function() {
-        document.getElementById('period-filter').value = 'monthly';
-        document.getElementById('category-filter').value = 'all';
-        document.getElementById('mall-filter').value = 'all';
-      });
-      
-      exportReportBtn.addEventListener('click', function() {
-        exportReportBtn.innerHTML = '<span class="loading"></span> Exporting...';
-        setTimeout(() => {
-          alert('Sales report exported successfully!');
-          exportReportBtn.innerHTML = '<i class="fas fa-file-export"></i> Export';
-        }, 1500);
-      });
-      
-      loadMoreBtn.addEventListener('click', function() {
-        loadMoreBtn.innerHTML = '<span class="loading"></span> Loading...';
-        
-        setTimeout(() => {
-          // Simulate adding more rows
-          const tableBody = document.querySelector('#products-table tbody');
-          const categories = ['Electronics', 'Clothing', 'Home & Garden', 'Books'];
-          const categoryClasses = ['category-electronics', 'category-clothing', 'category-home', 'category-books'];
-          const malls = ['Eastgate', 'Westview', 'Central', 'Northside'];
-          const mallClasses = ['mall-east', 'mall-west', 'mall-central', 'mall-north'];
-          
-          for (let i = 0; i < 5; i++) {
-            const catIndex = Math.floor(Math.random() * 4);
-            const mallIndex = Math.floor(Math.random() * 4);
-            const revenue = Math.floor(Math.random() * 500000) + 50000;
-            const units = Math.floor(revenue / (Math.random() * 200 + 50));
-            
-            const newRow = document.createElement('tr');
-            newRow.innerHTML = `
-              <td>PROD${Math.floor(Math.random() * 10000)}</td>
-              <td>Product ${String.fromCharCode(65 + Math.floor(Math.random() * 26))}${Math.floor(Math.random() * 1000)}</td>
-              <td><span class="category-badge ${categoryClasses[catIndex]}">${categories[catIndex]}</span></td>
-              <td><span class="mall-badge ${mallClasses[mallIndex]}"></span> ${malls[mallIndex]}</td>
-              <td>${units.toLocaleString()}</td>
-              <td class="${revenue > 300000 ? 'revenue-high' : revenue < 100000 ? 'revenue-low' : ''}">$${revenue.toLocaleString()}</td>
-              <td>${(Math.random() * 1.5 + 3.5).toFixed(1)} ★</td>
-              <td><span class="prediction-score ${revenue > 400000 ? 'low-risk-score' : revenue > 200000 ? 'medium-risk-score' : 'high-risk-score'}" style="${revenue > 400000 ? 'background: #06d6a0' : revenue > 200000 ? 'background: #ffd166; color: #333' : 'background: #ef476f'}">${revenue > 400000 ? 'Top Seller' : revenue > 200000 ? 'Steady' : 'Low Performer'}</span></td>
-            `;
-            tableBody.appendChild(newRow);
-          }
-          
-          loadMoreBtn.innerHTML = '<i class="fas fa-plus"></i> Load More Products';
-        }, 1000);
-      });
-      
-      viewTopBtn.addEventListener('click', function() {
-        viewTopBtn.innerHTML = '<span class="loading"></span> Loading...';
-        setTimeout(() => {
-          alert('Loading top 100 products... This would typically show a detailed view or filter.');
-          viewTopBtn.innerHTML = '<i class="fas fa-trophy"></i> View Top 100';
-        }, 800);
-      });
-      
-      // Real-time update simulation
-      function simulateRealTimeUpdate() {
-        const kpis = ['kpi-total-revenue', 'kpi-total-orders', 'kpi-avg-basket'];
-        const kpi = kpis[Math.floor(Math.random() * kpis.length)];
-        const element = document.getElementById(kpi);
-        
-        if (element) {
-          const currentValue = parseFloat(element.textContent.replace(/[$,]/g, ''));
-          const change = currentValue * 0.01 * (Math.random() > 0.5 ? 1 : -1);
-          const newValue = currentValue + change;
-          
-          // Flash animation
-          element.style.color = change > 0 ? '#06d6a0' : '#ef476f';
-          element.style.transition = 'color 0.3s';
-          
-          // Update value with formatting
-          if (kpi === 'kpi-total-revenue') {
-            element.textContent = '$' + (newValue / 1000000).toFixed(2) + 'M';
-          } else if (kpi === 'kpi-total-orders') {
-            element.textContent = Math.round(newValue).toLocaleString();
-          } else if (kpi === 'kpi-avg-basket') {
-            element.textContent = '$' + newValue.toFixed(2);
-          }
-          
-          setTimeout(() => {
-            element.style.color = '';
-          }, 1000);
-        }
-      }
-      
-      // Simulate real-time updates every 10 seconds
-      setInterval(simulateRealTimeUpdate, 10000);
-    });
-  </script>
+  <!-- NO EXTRA JAVASCRIPT HERE - retail.js handles everything -->
 </body>
 </html>
