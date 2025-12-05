@@ -1,66 +1,365 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Telecom Customer Churn Dashboard</title>
-
+  <title>Telecom Customer Churn Dashboard | Customer Retention Analytics</title>
   <link rel="stylesheet" href="/assets/css/styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <style>
+    .telecom-theme {
+      --dashboard-color: #06d6a0;
+      --dashboard-light: rgba(6, 214, 160, 0.1);
+    }
+    
+    .kpi-card:nth-child(1) { border-left-color: #4361ee; }
+    .kpi-card:nth-child(2) { border-left-color: #ef476f; }
+    .kpi-card:nth-child(3) { border-left-color: #06d6a0; }
+    .kpi-card:nth-child(4) { border-left-color: #ffd166; }
+    
+    .churn-high { color: #ef476f; font-weight: 600; }
+    .churn-low { color: #06d6a0; font-weight: 600; }
+    
+    .contract-badge {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 500;
+      background: var(--light-gray);
+      margin-right: 0.5rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    .contract-monthly { background: rgba(67, 97, 238, 0.15); color: #4361ee; }
+    .contract-yearly { background: rgba(6, 214, 160, 0.15); color: #06d6a0; }
+    .contract-two-year { background: rgba(255, 209, 102, 0.15); color: #d4a017; }
+    
+    .prediction-score {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      border-radius: 12px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+    
+    .high-risk-score { background: #ef476f; color: white; }
+    .medium-risk-score { background: #ffd166; color: #333; }
+    .low-risk-score { background: #06d6a0; color: white; }
+  </style>
 </head>
-<body>
+<body class="telecom-theme">
   <header class="navbar">
-    <h1>Telecom Customer Churn Dashboard</h1>
+    <h1><i class="fas fa-mobile-alt"></i> Telecom Customer Churn Dashboard</h1>
     <nav>
-      <a href="/">Home</a>
-      <a href="/retail/">Retail</a>
-      <a href="/telecom/">Telecom</a>
-      <a href="/hr/">HR</a>
+      <a href="/"><i class="fas fa-home"></i> Home</a>
+      <a href="/retail/"><i class="fas fa-shopping-cart"></i> Retail</a>
+      <a href="/telecom/" class="active"><i class="fas fa-chart-line"></i> Telecom</a>
+      <a href="/hr/"><i class="fas fa-users"></i> HR</a>
     </nav>
   </header>
 
   <main class="container">
+    <section class="dashboard-header">
+      <div class="dashboard-header-content">
+        <h2><i class="fas fa-signal"></i> Customer Retention & Churn Analytics</h2>
+        <p>Monitor customer churn patterns, identify at-risk customers, and analyze retention strategies across different service segments.</p>
+      </div>
+      <div class="date-range">
+        <i class="fas fa-calendar-alt"></i>
+        <span>Data Period: Q1 2022 - Q4 2023</span>
+      </div>
+    </section>
+
+    <section class="filter-container">
+      <div class="filter-group">
+        <label for="contract-filter"><i class="fas fa-file-contract"></i> Contract Type</label>
+        <select id="contract-filter">
+          <option value="all">All Contracts</option>
+          <option value="Month-to-month">Month-to-month</option>
+          <option value="One year">One year</option>
+          <option value="Two year">Two year</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="internet-filter"><i class="fas fa-wifi"></i> Internet Service</label>
+        <select id="internet-filter">
+          <option value="all">All Services</option>
+          <option value="Fiber optic">Fiber optic</option>
+          <option value="DSL">DSL</option>
+          <option value="No">No internet</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="tenure-filter"><i class="fas fa-history"></i> Tenure Group</label>
+        <select id="tenure-filter">
+          <option value="all">All Tenures</option>
+          <option value="0-12">0-12 months</option>
+          <option value="13-24">13-24 months</option>
+          <option value="25-36">25-36 months</option>
+          <option value="37+">37+ months</option>
+        </select>
+      </div>
+      <button class="btn" id="apply-filters">
+        <i class="fas fa-filter"></i> Apply Filters
+      </button>
+      <button class="btn btn-outline" id="reset-filters">
+        <i class="fas fa-redo"></i> Reset
+      </button>
+    </section>
+
     <section class="kpi-grid">
       <div class="kpi-card">
-        <h2>Total Customers</h2>
-        <p id="kpi-total-customers">Loading...</p>
+        <h2><i class="fas fa-user-friends"></i> Total Customers</h2>
+        <p id="kpi-total-customers">7,043</p>
+        <div class="trend positive">
+          <i class="fas fa-arrow-up"></i>
+          <span>12.5% growth</span>
+        </div>
       </div>
       <div class="kpi-card">
-        <h2>Churn Rate</h2>
-        <p id="kpi-churn-rate">Loading...</p>
+        <h2><i class="fas fa-user-slash"></i> Churn Rate</h2>
+        <p id="kpi-churn-rate" class="churn-high">26.5%</p>
+        <div class="trend negative">
+          <i class="fas fa-arrow-up"></i>
+          <span>3.1% increase</span>
+        </div>
       </div>
       <div class="kpi-card">
-        <h2>Avg Tenure (months)</h2>
-        <p id="kpi-avg-tenure">Loading...</p>
+        <h2><i class="fas fa-history"></i> Avg Tenure (months)</h2>
+        <p id="kpi-avg-tenure">32.4</p>
+        <div class="trend positive">
+          <i class="fas fa-arrow-up"></i>
+          <span>2.3 months increase</span>
+        </div>
       </div>
       <div class="kpi-card">
-        <h2>Avg Monthly Charges</h2>
-        <p id="kpi-avg-charges">Loading...</p>
+        <h2><i class="fas fa-money-bill-wave"></i> Avg Monthly Charges</h2>
+        <p id="kpi-avg-charges">$64.76</p>
+        <div class="trend negative">
+          <i class="fas fa-arrow-up"></i>
+          <span>$2.15 increase</span>
+        </div>
       </div>
     </section>
 
     <section class="charts-grid">
       <div class="chart-card">
-        <h3>Churn vs Non-Churn</h3>
-        <canvas id="churnOverall"></canvas>
+        <h3><i class="fas fa-balance-scale"></i> Churn Distribution</h3>
+        <div class="chart-container">
+          <canvas id="churnOverall"></canvas>
+        </div>
+        <div style="margin-top: 1rem; font-size: 0.9rem; color: var(--gray-color);">
+          <i class="fas fa-exclamation-triangle" style="color: #ef476f;"></i>
+          High churn among month-to-month contracts (42.7%)
+        </div>
       </div>
       <div class="chart-card">
-        <h3>Churn Rate by Contract Type</h3>
-        <canvas id="churnByContract"></canvas>
+        <h3><i class="fas fa-file-contract"></i> Churn by Contract Type</h3>
+        <div class="chart-container">
+          <canvas id="churnByContract"></canvas>
+        </div>
       </div>
       <div class="chart-card">
-        <h3>Churn Rate by Internet Service</h3>
-        <canvas id="churnByInternet"></canvas>
+        <h3><i class="fas fa-wifi"></i> Churn by Internet Service</h3>
+        <div class="chart-container">
+          <canvas id="churnByInternet"></canvas>
+        </div>
       </div>
       <div class="chart-card">
-        <h3>Churn Rate by Tenure Group</h3>
-        <canvas id="churnByTenure"></canvas>
+        <h3><i class="fas fa-history"></i> Churn by Tenure Group</h3>
+        <div class="chart-container">
+          <canvas id="churnByTenure"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <h3><i class="fas fa-phone"></i> Churn by Phone Service</h3>
+        <div class="chart-container">
+          <canvas id="churnByPhone"></canvas>
+        </div>
+      </div>
+      <div class="chart-card">
+        <h3><i class="fas fa-shield-alt"></i> Churn by Tech Support</h3>
+        <div class="chart-container">
+          <canvas id="churnByTechSupport"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <section class="data-table-container">
+      <h3><i class="fas fa-table"></i> At-Risk Customers (Churn Prediction)</h3>
+      <div class="table-wrapper">
+        <table id="customer-table">
+          <thead>
+            <tr>
+              <th>Customer ID</th>
+              <th>Contract Type</th>
+              <th>Tenure (months)</th>
+              <th>Monthly Charges</th>
+              <th>Internet Service</th>
+              <th>Churn Risk</th>
+              <th>Prediction Score</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>TEL001</td>
+              <td><span class="contract-badge contract-monthly">Month-to-month</span></td>
+              <td>2</td>
+              <td>$89.10</td>
+              <td>Fiber optic</td>
+              <td><span class="churn-high">High</span></td>
+              <td><span class="prediction-score high-risk-score">92%</span></td>
+              <td><button class="btn" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">Retain</button></td>
+            </tr>
+            <tr>
+              <td>TEL002</td>
+              <td><span class="contract-badge contract-two-year">Two year</span></td>
+              <td>45</td>
+              <td>$52.35</td>
+              <td>DSL</td>
+              <td><span class="churn-low">Low</span></td>
+              <td><span class="prediction-score low-risk-score">15%</span></td>
+              <td><button class="btn btn-outline" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">Monitor</button></td>
+            </tr>
+            <!-- More rows would be populated by JavaScript -->
+          </tbody>
+        </table>
+      </div>
+      <div style="margin-top: 1rem; text-align: center;">
+        <button class="btn btn-outline" id="load-more">
+          <i class="fas fa-plus"></i> Load More Records
+        </button>
+        <button class="btn" id="export-risk">
+          <i class="fas fa-download"></i> Export High-Risk List
+        </button>
       </div>
     </section>
   </main>
 
+  <footer class="footer">
+    <div class="footer-content">
+      <p><i class="fas fa-signal"></i> Telecom Customer Churn Dashboard &copy; 2023</p>
+      <p>Customer Retention & Predictive Analytics Platform</p>
+      <div class="download-links">
+        <a href="/assets/data/telecom_dataset.csv" class="btn btn-outline" style="color: white; border-color: white;">
+          <i class="fas fa-download"></i> Download Dataset
+        </a>
+        <a href="#" class="btn btn-outline" style="color: white; border-color: white;">
+          <i class="fas fa-chart-pie"></i> Retention Report
+        </a>
+        <a href="#" class="btn btn-outline" style="color: white; border-color: white;">
+          <i class="fas fa-cogs"></i> Prediction Model
+        </a>
+      </div>
+    </div>
+  </footer>
+
   <script src="/assets/js/telecom.js"></script>
+  <script>
+    // Interactive functionality
+    document.addEventListener('DOMContentLoaded', function() {
+      // Filter functionality
+      const applyFiltersBtn = document.getElementById('apply-filters');
+      const resetFiltersBtn = document.getElementById('reset-filters');
+      const loadMoreBtn = document.getElementById('load-more');
+      const exportRiskBtn = document.getElementById('export-risk');
+      
+      applyFiltersBtn.addEventListener('click', function() {
+        const contract = document.getElementById('contract-filter').value;
+        const internet = document.getElementById('internet-filter').value;
+        const tenure = document.getElementById('tenure-filter').value;
+        
+        // Show loading state
+        applyFiltersBtn.innerHTML = '<span class="loading"></span> Applying...';
+        applyFiltersBtn.disabled = true;
+        
+        // Simulate API call
+        setTimeout(() => {
+          alert(`Filters applied:\n- Contract: ${contract}\n- Internet: ${internet}\n- Tenure: ${tenure}`);
+          applyFiltersBtn.innerHTML = '<i class="fas fa-filter"></i> Apply Filters';
+          applyFiltersBtn.disabled = false;
+        }, 1000);
+      });
+      
+      resetFiltersBtn.addEventListener('click', function() {
+        document.getElementById('contract-filter').value = 'all';
+        document.getElementById('internet-filter').value = 'all';
+        document.getElementById('tenure-filter').value = 'all';
+      });
+      
+      loadMoreBtn.addEventListener('click', function() {
+        loadMoreBtn.innerHTML = '<span class="loading"></span> Loading...';
+        
+        setTimeout(() => {
+          // Simulate adding more rows
+          const tableBody = document.querySelector('#customer-table tbody');
+          const contractTypes = ['Month-to-month', 'One year', 'Two year'];
+          const internetTypes = ['Fiber optic', 'DSL', 'No'];
+          const riskLevels = ['High', 'Medium', 'Low'];
+          const riskColors = ['high-risk-score', 'medium-risk-score', 'low-risk-score'];
+          
+          const newRow = document.createElement('tr');
+          const contractType = contractTypes[Math.floor(Math.random() * 3)];
+          const riskIndex = Math.floor(Math.random() * 3);
+          
+          newRow.innerHTML = `
+            <td>TEL${Math.floor(Math.random() * 10000)}</td>
+            <td><span class="contract-badge ${contractType === 'Month-to-month' ? 'contract-monthly' : contractType === 'One year' ? 'contract-yearly' : 'contract-two-year'}">${contractType}</span></td>
+            <td>${Math.floor(Math.random() * 72)}</td>
+            <td>$${(Math.random() * 100 + 20).toFixed(2)}</td>
+            <td>${internetTypes[Math.floor(Math.random() * 3)]}</td>
+            <td><span class="${riskIndex === 0 ? 'churn-high' : riskIndex === 1 ? '' : 'churn-low'}">${riskLevels[riskIndex]}</span></td>
+            <td><span class="prediction-score ${riskColors[riskIndex]}">${Math.floor(Math.random() * 40 + (riskIndex === 0 ? 60 : riskIndex === 1 ? 30 : 0))}%</span></td>
+            <td><button class="btn" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;">${riskIndex === 0 ? 'Retain' : 'Monitor'}</button></td>
+          `;
+          tableBody.appendChild(newRow);
+          
+          loadMoreBtn.innerHTML = '<i class="fas fa-plus"></i> Load More Records';
+        }, 800);
+      });
+      
+      exportRiskBtn.addEventListener('click', function() {
+        exportRiskBtn.innerHTML = '<span class="loading"></span> Exporting...';
+        setTimeout(() => {
+          alert('High-risk customer list exported successfully!');
+          exportRiskBtn.innerHTML = '<i class="fas fa-download"></i> Export High-Risk List';
+        }, 1500);
+      });
+      
+      // Retain button functionality
+      document.addEventListener('click', function(e) {
+        if (e.target && e.target.textContent === 'Retain') {
+          const row = e.target.closest('tr');
+          const customerId = row.cells[0].textContent;
+          
+          e.target.innerHTML = '<span class="loading" style="width: 12px; height: 12px;"></span>';
+          e.target.disabled = true;
+          
+          setTimeout(() => {
+            e.target.textContent = 'Retention Sent';
+            e.target.classList.remove('btn');
+            e.target.classList.add('btn-outline');
+            e.target.disabled = false;
+            
+            // Show success message
+            const successMsg = document.createElement('div');
+            successMsg.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #06d6a0; color: white; padding: 1rem; border-radius: 8px; z-index: 1000; box-shadow: var(--shadow);';
+            successMsg.innerHTML = `<i class="fas fa-check-circle"></i> Retention offer sent to ${customerId}`;
+            document.body.appendChild(successMsg);
+            
+            setTimeout(() => {
+              successMsg.remove();
+            }, 3000);
+          }, 1200);
+        }
+      });
+    });
+  </script>
 </body>
 </html>
-
