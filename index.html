@@ -1,70 +1,582 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Interactive Data Dashboards</title>
+  <title>Interactive Data Dashboards | Data Visualization Portfolio</title>
   <link rel="stylesheet" href="/assets/css/styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* Enhanced CSS styles */
+    :root {
+      --primary-color: #4361ee;
+      --secondary-color: #3a0ca3;
+      --accent-color: #4cc9f0;
+      --dark-color: #1a1a2e;
+      --light-color: #f8f9fa;
+      --success-color: #06d6a0;
+      --warning-color: #ffd166;
+      --danger-color: #ef476f;
+      --gray-color: #6c757d;
+      --light-gray: #e9ecef;
+      --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      --transition: all 0.3s ease;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Inter', sans-serif;
+      line-height: 1.6;
+      color: var(--dark-color);
+      background-color: #f5f7ff;
+      background-image: linear-gradient(135deg, #f5f7ff 0%, #e3e9ff 100%);
+      min-height: 100vh;
+    }
+    
+    /* Header & Navigation */
+    .navbar {
+      background-color: white;
+      box-shadow: var(--shadow);
+      padding: 1.2rem 2rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    
+    @media (min-width: 768px) {
+      .navbar {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+      }
+    }
+    
+    .navbar h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--primary-color);
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    @media (min-width: 768px) {
+      .navbar h1 {
+        margin-bottom: 0;
+      }
+    }
+    
+    .navbar h1 i {
+      color: var(--accent-color);
+    }
+    
+    .navbar nav {
+      display: flex;
+      gap: 1.5rem;
+    }
+    
+    .navbar nav a {
+      text-decoration: none;
+      color: var(--dark-color);
+      font-weight: 500;
+      padding: 0.5rem 1rem;
+      border-radius: 50px;
+      transition: var(--transition);
+      position: relative;
+    }
+    
+    .navbar nav a:hover {
+      color: var(--primary-color);
+      background-color: var(--light-gray);
+    }
+    
+    .navbar nav a.active {
+      color: white;
+      background-color: var(--primary-color);
+    }
+    
+    /* Main Container */
+    .container {
+      max-width: 1200px;
+      margin: 2rem auto;
+      padding: 0 1.5rem;
+    }
+    
+    /* Hero Section */
+    .hero-section {
+      text-align: center;
+      margin-bottom: 3rem;
+      padding: 2.5rem 1.5rem;
+      background: white;
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+    }
+    
+    .hero-section h2 {
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: var(--secondary-color);
+      margin-bottom: 1rem;
+    }
+    
+    .dashboards-intro {
+      font-size: 1.1rem;
+      color: var(--gray-color);
+      max-width: 700px;
+      margin: 0 auto 1.5rem;
+    }
+    
+    .stats-container {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+    
+    .stat-item {
+      background: var(--light-color);
+      padding: 1rem 1.5rem;
+      border-radius: 10px;
+      min-width: 150px;
+      text-align: center;
+      border-left: 4px solid var(--primary-color);
+    }
+    
+    .stat-value {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--primary-color);
+    }
+    
+    .stat-label {
+      font-size: 0.9rem;
+      color: var(--gray-color);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    /* Dashboard Cards Section */
+    .dashboard-links {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 2rem;
+      margin-bottom: 3rem;
+    }
+    
+    @media (min-width: 768px) {
+      .dashboard-links {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+    
+    .dashboard-card {
+      background: white;
+      border-radius: 16px;
+      padding: 2rem;
+      text-decoration: none;
+      color: inherit;
+      box-shadow: var(--shadow);
+      transition: var(--transition);
+      display: flex;
+      flex-direction: column;
+      height: 100%;
+      position: relative;
+      overflow: hidden;
+      border: 1px solid transparent;
+    }
+    
+    .dashboard-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+      border-color: var(--accent-color);
+    }
+    
+    .dashboard-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 5px;
+    }
+    
+    .dashboard-card:nth-child(1)::before {
+      background: linear-gradient(90deg, var(--primary-color), var(--accent-color));
+    }
+    
+    .dashboard-card:nth-child(2)::before {
+      background: linear-gradient(90deg, var(--success-color), var(--accent-color));
+    }
+    
+    .dashboard-card:nth-child(3)::before {
+      background: linear-gradient(90deg, var(--warning-color), var(--danger-color));
+    }
+    
+    .dashboard-card h3 {
+      font-size: 1.4rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: var(--secondary-color);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .dashboard-card p {
+      color: var(--gray-color);
+      margin-bottom: 1.5rem;
+      flex-grow: 1;
+    }
+    
+    .card-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    
+    .tag {
+      background-color: var(--light-gray);
+      color: var(--dark-color);
+      padding: 0.3rem 0.8rem;
+      border-radius: 50px;
+      font-size: 0.8rem;
+      font-weight: 500;
+    }
+    
+    .dashboard-card:hover .tag {
+      background-color: var(--primary-color);
+      color: white;
+    }
+    
+    .card-footer {
+      margin-top: 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .view-btn {
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      padding: 0.5rem 1.2rem;
+      border-radius: 50px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: var(--transition);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .dashboard-card:hover .view-btn {
+      background-color: var(--secondary-color);
+    }
+    
+    .updated {
+      font-size: 0.8rem;
+      color: var(--gray-color);
+    }
+    
+    /* Footer */
+    .footer {
+      text-align: center;
+      padding: 2rem;
+      background-color: white;
+      margin-top: 3rem;
+      border-top: 1px solid var(--light-gray);
+    }
+    
+    .footer p {
+      color: var(--gray-color);
+      margin-bottom: 1rem;
+    }
+    
+    .social-links {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    
+    .social-links a {
+      color: var(--gray-color);
+      font-size: 1.2rem;
+      transition: var(--transition);
+    }
+    
+    .social-links a:hover {
+      color: var(--primary-color);
+    }
+    
+    /* Responsive adjustments */
+    @media (max-width: 768px) {
+      .container {
+        padding: 0 1rem;
+      }
+      
+      .hero-section {
+        padding: 1.5rem 1rem;
+      }
+      
+      .hero-section h2 {
+        font-size: 1.8rem;
+      }
+      
+      .dashboard-card {
+        padding: 1.5rem;
+      }
+    }
+    
+    /* Animation for cards on load */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .dashboard-card {
+      animation: fadeInUp 0.5s ease forwards;
+    }
+    
+    .dashboard-card:nth-child(1) {
+      animation-delay: 0.1s;
+    }
+    
+    .dashboard-card:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+    
+    .dashboard-card:nth-child(3) {
+      animation-delay: 0.3s;
+    }
+  </style>
 </head>
 <body>
   <header class="navbar">
-    <h1>Interactive Data Dashboards</h1>
+    <h1><i class="fas fa-chart-line"></i> Interactive Data Dashboards</h1>
     <nav>
-      <a href="/retail/">Retail</a>
+      <a href="/retail/" class="active">Retail</a>
       <a href="/telecom/">Telecom</a>
       <a href="/hr/">HR</a>
+      <a href="#about">About</a>
     </nav>
   </header>
 
   <main class="container">
-    <section>
-      <h2>Explore the dashboards</h2>
+    <section class="hero-section">
+      <h2>Explore Interactive Data Dashboards</h2>
       <p class="dashboards-intro">
         Three focused dashboards built with real datasets to show how I analyse and visualise
-        data across different domains.
+        data across different domains. Each dashboard includes interactive charts, filters, and actionable insights.
       </p>
+      
+      <div class="stats-container">
+        <div class="stat-item">
+          <div class="stat-value">3</div>
+          <div class="stat-label">Dashboards</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">15+</div>
+          <div class="stat-label">Visualizations</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">100K+</div>
+          <div class="stat-label">Data Points</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">Interactive</div>
+          <div class="stat-label">Filters & Controls</div>
+        </div>
+      </div>
     </section>
 
     <section class="dashboard-links">
       <a class="dashboard-card" href="/retail/">
-        <h3>🛍 Retail Sales Dashboard</h3>
+        <h3><i class="fas fa-shopping-cart"></i> Retail Sales Dashboard</h3>
         <p>
           Revenue trends, product categories, customer demographics, and payment behaviour
-          across shopping malls.
+          across shopping malls. Analyze seasonal patterns and customer purchasing habits.
         </p>
         <div class="card-tags">
           <span class="tag">Revenue</span>
           <span class="tag">Customer Segments</span>
           <span class="tag">Time Series</span>
+          <span class="tag">Geomapping</span>
+        </div>
+        <div class="card-footer">
+          <span class="updated">Updated: 2 days ago</span>
+          <div class="view-btn">Explore <i class="fas fa-arrow-right"></i></div>
         </div>
       </a>
 
       <a class="dashboard-card" href="/telecom/">
-        <h3>📞 Telecom Customer Churn Dashboard</h3>
+        <h3><i class="fas fa-mobile-alt"></i> Telecom Customer Churn Dashboard</h3>
         <p>
           Churn rate by contract type, tenure, and internet service to understand risk and
-          retention.
+          retention. Predictive models identify high-risk customers.
         </p>
         <div class="card-tags">
           <span class="tag">Churn</span>
           <span class="tag">Customer Lifetime</span>
           <span class="tag">Segmentation</span>
+          <span class="tag">Predictive</span>
+        </div>
+        <div class="card-footer">
+          <span class="updated">Updated: 1 week ago</span>
+          <div class="view-btn">Explore <i class="fas fa-arrow-right"></i></div>
         </div>
       </a>
 
       <a class="dashboard-card" href="/hr/">
-        <h3>👥 HR Employee Attrition Dashboard</h3>
+        <h3><i class="fas fa-users"></i> HR Employee Attrition Dashboard</h3>
         <p>
           Attrition by department, job role, age group, and years at company for people
-          analytics.
+          analytics. Identify retention risks and workforce trends.
         </p>
         <div class="card-tags">
           <span class="tag">Attrition</span>
           <span class="tag">People Analytics</span>
           <span class="tag">HR Insights</span>
+          <span class="tag">Diversity</span>
+        </div>
+        <div class="card-footer">
+          <span class="updated">Updated: 3 days ago</span>
+          <div class="view-btn">Explore <i class="fas fa-arrow-right"></i></div>
         </div>
       </a>
     </section>
+    
+    <section id="about" class="hero-section">
+      <h2>About This Project</h2>
+      <p class="dashboards-intro">
+        This portfolio showcases my skills in data analysis, visualization, and dashboard development. 
+        Each dashboard is built with real-world datasets and includes interactive features for deep data exploration.
+        The goal is to demonstrate how data can be transformed into actionable insights across various business domains.
+      </p>
+      <div style="margin-top: 2rem; display: flex; justify-content: center; gap: 1rem;">
+        <div class="view-btn" style="background-color: var(--secondary-color);">
+          <i class="fas fa-download"></i> Download Datasets
+        </div>
+        <div class="view-btn" style="background-color: var(--gray-color);">
+          <i class="fas fa-code"></i> View Source Code
+        </div>
+      </div>
+    </section>
   </main>
+
+  <footer class="footer">
+    <p>Interactive Data Dashboards &copy; 2023 | Data Visualization Portfolio</p>
+    <p>Built with HTML, CSS, JavaScript, and popular visualization libraries</p>
+    <div class="social-links">
+      <a href="#"><i class="fab fa-github"></i></a>
+      <a href="#"><i class="fab fa-linkedin"></i></a>
+      <a href="#"><i class="fab fa-twitter"></i></a>
+      <a href="#"><i class="fas fa-envelope"></i></a>
+    </div>
+  </footer>
+
+  <script>
+    // Interactive JavaScript enhancements
+    document.addEventListener('DOMContentLoaded', function() {
+      // Add active state to navigation links
+      const navLinks = document.querySelectorAll('.navbar nav a');
+      const currentPath = window.location.pathname;
+      
+      navLinks.forEach(link => {
+        if (link.getAttribute('href') === currentPath || 
+            (currentPath === '/' && link.getAttribute('href') === '/retail/')) {
+          link.classList.add('active');
+        }
+        
+        link.addEventListener('click', function(e) {
+          if (this.getAttribute('href').startsWith('#')) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href').substring(1);
+            const targetElement = document.getElementById(targetId);
+            
+            if (targetElement) {
+              window.scrollTo({
+                top: targetElement.offsetTop - 80,
+                behavior: 'smooth'
+              });
+            }
+          }
+        });
+      });
+      
+      // Add hover effect to dashboard cards
+      const dashboardCards = document.querySelectorAll('.dashboard-card');
+      
+      dashboardCards.forEach(card => {
+        card.addEventListener('mouseenter', function() {
+          const icon = this.querySelector('h3 i');
+          if (icon) {
+            icon.style.transform = 'translateX(5px)';
+            icon.style.transition = 'transform 0.3s ease';
+          }
+        });
+        
+        card.addEventListener('mouseleave', function() {
+          const icon = this.querySelector('h3 i');
+          if (icon) {
+            icon.style.transform = 'translateX(0)';
+          }
+        });
+      });
+      
+      // Animate stats counter
+      const statValues = document.querySelectorAll('.stat-value');
+      const observerOptions = {
+        threshold: 0.5
+      };
+      
+      const observer = new IntersectionObserver(function(entries) {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const stat = entry.target;
+            const targetValue = stat.textContent;
+            
+            // Remove non-numeric characters for counting
+            const numericValue = targetValue.replace(/\D/g, '');
+            
+            if (numericValue && !isNaN(numericValue)) {
+              let count = 0;
+              const target = parseInt(numericValue);
+              const increment = target / 50;
+              const timer = setInterval(() => {
+                count += increment;
+                if (count >= target) {
+                  count = target;
+                  clearInterval(timer);
+                }
+                stat.textContent = Math.floor(count) + (targetValue.includes('+') ? '+' : '');
+              }, 30);
+            }
+            
+            observer.unobserve(stat);
+          }
+        });
+      }, observerOptions);
+      
+      statValues.forEach(stat => observer.observe(stat));
+    });
+  </script>
 </body>
 </html>
